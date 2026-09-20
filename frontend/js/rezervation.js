@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 modalWindow.classList.add("active");
                 modalWindow.classList.remove("wrong");
-                
+
                 // Klíčový krok: Přinutí FullCalendar znova stáhnout data a překreslit slot na červeno ("Obsazeno")
                 calendar.refetchEvents(); 
             } else {

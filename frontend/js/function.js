@@ -33,6 +33,7 @@ function openModal(start, end) {
 function closeModal() {
     modal.style.display = "none";
     document.body.classList.remove("no-scroll");
+    modalWindow.classList.remove("active");
 }
 
 // uložení rezervace
