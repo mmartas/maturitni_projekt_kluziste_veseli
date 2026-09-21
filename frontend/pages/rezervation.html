@@ -111,7 +111,11 @@
                             <label for="clientNotes">Poznámky</label>
                         </div>
                     </div>
-                    <button type="submit" class="text">Odeslat rezervaci</button>
+                    <div class="client_info_row">
+                        <input type="checkbox" name="gdpr" id="clientGdpr" required>
+                        <label for="clientGdpr">Souhlasím se zpracováním osobních údajů za účelem rezervace termínu.</label>
+                    </div>
+                    <button type="submit" class="text" id="formSubmitButton">Odeslat rezervaci</button>
                     <p id="error_message">Došlo k chybě, obnovte stránku a zkuste to znovu.</p>
                 </form>
             </div>

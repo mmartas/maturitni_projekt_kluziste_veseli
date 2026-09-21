@@ -17,8 +17,18 @@ const pool = mysql.createPool({
     database: 'kalendar' // Zde si doplň přesný název své databáze
 });
 
-// 1. API Endpoint pro FullCalendar (vrátí události z databáze)
+const nodemailer = require('nodemailer');
 
+// Nastavení e-mailového odesílatele
+const transporter = nodemailer.createTransport({
+    service: 'gmail', // Nebo např. 'seznam' (smtp.seznam.cz), případně vlastní SMTP
+    auth: {
+        user: 'kluzistevcentruveseli@gmail.com',         // E-mail, ze kterého se zprávy budou posílat
+        pass: 'txtdgsvoiggopucj'     // Heslo nebo vygenerované "App Password"
+    }
+});
+
+// 1. API Endpoint pro FullCalendar (vrátí události z databáze)
 app.get('/api/events', async (req, res) => {
     try {
         // Pomocí LEFT JOIN zjistíme, jestli už k eventu existuje rezervace
@@ -62,6 +72,26 @@ app.post('/api/reservations', async (req, res) => {
             "INSERT INTO reservations (event_id, name, surname, email, phone, note, date) VALUES (?, ?, ?, ?, ?, ?, ?)",
             [event_id, name, surname, email, phone, note, date]
         );
+
+        // 2. Příprava e-mailu pro KLIENTA
+        const clientMailOptions = {
+            from: '"Kluziště Veselí" <kluzistevcentruveseli@gmail.com>',
+            to: email, // E-mail zadaný ve formuláři
+            subject: 'Potvrzení rezervace kluziště',
+            text: `Dobrý den, ${name} ${surname},\n\nvaše rezervace na kluziště byla úspěšně vytvořena.\nTermín: ${date}\n\nTěšíme se na Vás!`
+        };
+
+        // 3. Příprava e-mailu pro SPRÁVCE KLUZIŠTĚ
+        const adminMailOptions = {
+            from: '"Systém Kluziště" <kluzistevcentruveseli@gmail.com>',
+            to: 'kluzistevcentruveseli@gmail.com', // E-mail, kam chodí upozornění tobě/správci
+            subject: 'Nová rezervace na kluzišti!',
+            text: `Byla vytvořena nová rezervace:\n\nJméno: ${name} ${surname}\nE-mail: ${email}\nTelefon: ${phone}\nTermín: ${date}\nPoznámka: ${note || 'žádná'}`
+        };
+
+        // 4. Odeslání obou e-mailů
+        await transporter.sendMail(clientMailOptions);
+        await transporter.sendMail(adminMailOptions);
 
         res.json({ success: true, message: "Rezervace byla úspěšně vytvořena!" });
     } catch (err) {

@@ -9,6 +9,8 @@ const errorMessage = document.getElementById("error_message");
 
 const calendarEl = document.getElementById('calendar');
 
+const formSubmitButton = document.getElementById("formSubmitButton");
+
 document.addEventListener('DOMContentLoaded', function () {
     // kalendář
     const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -157,9 +159,6 @@ document.addEventListener('DOMContentLoaded', function () {
             // Zastavíme odeslání formuláře
             e.preventDefault();
             
-            // Upozorníme uživatele
-            alert("Telefonní číslo musí obsahovat přesně 9 čísel!");
-            
             // Vrátíme kurzor do políčka pro telefon
             document.getElementById("clientTel").focus();
             return;
@@ -171,7 +170,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (!emailRegex.test(emailInput)) {
-            alert("Zadejte platnou e-mailovou adresu (např. jan@email.cz)!");
             e.preventDefault(); // Zastaví odeslání formuláře
             document.getElementById("clientEmail").focus();
             return;
@@ -185,7 +183,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!nameRegex.test(nameInput) || !nameRegex.test(surnameInput)) {
             e.preventDefault();
-            alert("Jméno a příjmení musí obsahovat pouze platná písmena (minimálně 2 znaky)!");
             return;
         }
         
@@ -201,6 +198,9 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         console.log("Odesílám data:", formData); // Pro kontrolu, co se odesílá
+
+        formSubmitButton.disabled = true; // Deaktivace tlačítka po kliknutí
+        formSubmitButton.textContent = "Odesílám..."; // Změna textu tlačítka
 
         // 2. Pošleme data přes fetch na náš nový POST endpoint do server.js
         fetch('http://localhost:3000/api/reservations', {
@@ -237,6 +237,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 modalWindow.classList.add("wrong");
                 modalWindow.classList.remove("active");
                 errorMessage.textContent = "Došlo k chybě, obnovte stránku a zkuste to znovu.";
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Odeslat rezervaci";
             }
         })
         .catch(error => console.error('Chyba:', error));

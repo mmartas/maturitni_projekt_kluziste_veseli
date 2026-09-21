@@ -34,6 +34,9 @@ function closeModal() {
     modal.style.display = "none";
     document.body.classList.remove("no-scroll");
     modalWindow.classList.remove("active");
+
+    formSubmitButton.disabled = false;
+    formSubmitButton.textContent = "Odeslat rezervaci";
 }
 
 // uložení rezervace
