@@ -15,15 +15,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // kalendář
     const calendar = new FullCalendar.Calendar(calendarEl, {
         locale: 'cs',
-
         initialView: 'timeGridWeek',
 
         dayHeaderDidMount: function(info) {
-
             if (info.view.type === "dayGridMonth") return;
-
             info.el.style.cursor = "pointer";
-
             info.el.addEventListener("click", () => {
                 calendar.changeView('timeGridDay', info.date);
             });
@@ -48,8 +44,6 @@ document.addEventListener('DOMContentLoaded', function () {
         height: 'auto',
         firstDay: 1,
 
-        
-
         slotMinTime: '06:00:00',
         slotMaxTime: '23:00:00',
 
@@ -61,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         events: "http://localhost:3000/api/events",
 
-        // cursor pointer na políčka "možnost pronájmu"
+        // cursor pointer na eventy pro pronájem a obarvení eventů podle typu
         eventClassNames: function(arg) {
             const type = arg.event.extendedProps.type;
             const booked = arg.event.extendedProps.booked;
@@ -81,11 +75,10 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (type === 'school') {
                 return ['event-school'];
             }
-
             return [];
         },
 
-        // otevření modalu při kliknutí na políčko "možnost pronájmu"
+        // otevření objednacího modalu při kliknutí na volný pronájem
         eventClick: function(info){
             const type = info.event.extendedProps.type;
             const booked = info.event.extendedProps.booked;
@@ -94,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            window.selectedEventId = info.event.id; // Uložíme ID vybraného eventu do globální proměnné
+            window.selectedEventId = info.event.id;
             openModal(info.event.startStr, info.event.endStr);
         },
 
@@ -110,9 +103,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         },
 
-        /* nezalomení hlavičky "po 11.4." při responzivitě */
+        // nezalomení hlavičky "po 11.4." při responzivitě
         dayHeaderContent: function(arg) {
-
             const date = arg.date;
             const day = date.toLocaleDateString('cs-CZ', { weekday: 'short' });
             const fullDate = date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
@@ -145,64 +137,63 @@ document.addEventListener('DOMContentLoaded', function () {
             };
         },
     });
+
     calendar.render();
 
-    // formulář
+    // odeslní objednacího formuláře
     document.getElementById("rezervationForm").addEventListener("submit", function(e) {
         e.preventDefault();
 
-        // 1. Získáme hodnotu z telefonu a odstraníme z ní mezery
+        // telefonní číslo - odstranění mezer a kontrola délky
         const phoneValue = document.getElementById("clientTel").value.replace(/\D/g, "");
 
-        // 2. Ověříme, jestli má přesně 9 čísel
         if (phoneValue.length !== 9) {
-            // Zastavíme odeslání formuláře
             e.preventDefault();
-            
-            // Vrátíme kurzor do políčka pro telefon
             document.getElementById("clientTel").focus();
             return;
         }
 
+        // ověření správnosti vyplněného e-mailu
         const emailInput = document.getElementById("clientEmail").value.trim();
-
-        // Regulární výraz pro ověření platného e-mailu
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (!emailRegex.test(emailInput)) {
-            e.preventDefault(); // Zastaví odeslání formuláře
+            e.preventDefault();
             document.getElementById("clientEmail").focus();
             return;
         }
 
+        // ověření jména a příjmení
         const nameInput = document.getElementById("clientName").value.trim();
         const surnameInput = document.getElementById("clientSurname").value.trim();
-
-        // Regulární výraz pro ověření, že řetězec obsahuje pouze písmena a mezery
         const nameRegex = /^[a-zA-ZáčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ\s]{2,}$/;
 
-        if (!nameRegex.test(nameInput) || !nameRegex.test(surnameInput)) {
+        if (!nameRegex.test(nameInput)) {
             e.preventDefault();
+            document.getElementById("clientName").focus();
+            return;
+        }
+        if (!nameRegex.test(surnameInput)) {
+            e.preventDefault();
+            document.getElementById("clientSurname").focus();
             return;
         }
         
-        // 1. Získáme data z formuláře
+        // získání dat z vyplněného a odeslaného formuláře
         const formData = {
-            event_id: window.selectedEventId, // Přibalíme ID vybraného eventu z kalendáře
-            name: document.getElementById("clientName").value,     // Uprav si podle reálných ID tvých inputů ve formuláři
-            surname: document.getElementById("clientSurname").value, // Uprav si podle reálných ID tvých inputů ve formuláři
-            email: document.getElementById("clientEmail").value,    // Uprav si podle reálných ID tvých inputů ve formuláři
-            phone: document.getElementById("clientTel").value,    // Uprav si podle reálných ID tvých inputů ve formuláři
-            date: document.getElementById("selectedDateInput").value,    // Uprav
-            note: document.getElementById("clientNotes").value    // Uprav
+            event_id: window.selectedEventId,
+            name: document.getElementById("clientName").value,
+            surname: document.getElementById("clientSurname").value,
+            email: document.getElementById("clientEmail").value,
+            phone: document.getElementById("clientTel").value,
+            date: document.getElementById("selectedDateInput").value,
+            note: document.getElementById("clientNotes").value
         };
 
-        console.log("Odesílám data:", formData); // Pro kontrolu, co se odesílá
+        formSubmitButton.disabled = true;
+        formSubmitButton.textContent = "Odesílám...";
 
-        formSubmitButton.disabled = true; // Deaktivace tlačítka po kliknutí
-        formSubmitButton.textContent = "Odesílám..."; // Změna textu tlačítka
-
-        // 2. Pošleme data přes fetch na náš nový POST endpoint do server.js
+        // posílání dat na backend přes fetch na post endpoint do server.js
         fetch('http://localhost:3000/api/reservations', {
             method: 'POST',
             headers: {
@@ -216,10 +207,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 formSide.style.display = "none";
                 messageSide.style.display = "flex";
 
+                // upravení jméno do 5. pádu pro oslovení v potvrzovacím modalu
                 let formattedNamePlace = document.getElementById("formatted_name");
                 let rawName = formData.name;
                 let formattedName = getVocative(rawName);
-
                 formattedNamePlace.textContent = formattedName;
 
                 messageContent.innerHTML = `
@@ -230,15 +221,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 modalWindow.classList.add("active");
                 modalWindow.classList.remove("wrong");
 
-                // Klíčový krok: Přinutí FullCalendar znova stáhnout data a překreslit slot na červeno ("Obsazeno")
                 calendar.refetchEvents(); 
             } else {
                 errorMessage.style.display = "flex";
                 modalWindow.classList.add("wrong");
                 modalWindow.classList.remove("active");
                 errorMessage.textContent = "Došlo k chybě, obnovte stránku a zkuste to znovu.";
-                submitBtn.disabled = false;
-                submitBtn.textContent = "Odeslat rezervaci";
+
+                formSubmitButton.disabled = false;
+                formSubmitButton.textContent = "Odeslat rezervaci";
             }
         })
         .catch(error => console.error('Chyba:', error));
@@ -251,40 +242,17 @@ document.addEventListener('DOMContentLoaded', function () {
     closeCross.forEach(cross => {
         cross.addEventListener("click", closeModal);
     });
+
     window.addEventListener("click", (e) => {
         if (e.target === modal) closeModal();
     });
+
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeModal();
     });
 });
 
-
-// Příklad funkce, která se zavolá po odeslání tvého modálního formuláře:
-function handleReservationSubmit(eventData) {
-    fetch('http://localhost:3000/api/reservations', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(eventData) // např. { event_id, name, email }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // 1. Zavřeme modal
-            closeModal();
-            
-            // 2. Klíčový krok: Přinutíme FullCalendar znova stáhnout data z backendu!
-            calendar.refetchEvents(); 
-        } else {
-            alert("Chyba: " . data.error);
-        }
-    })
-    .catch(error => console.error('Chyba:', error));
-}
-
-// konfigurace vyplnění telefonního čísla s mezerami po 3 číslech
+// nastavení inputu pro tel. číslo
 const phoneInput = document.getElementById("clientTel");
 
 phoneInput.addEventListener("input", function (e) {
@@ -312,56 +280,14 @@ phoneInput.addEventListener("input", function (e) {
     e.target.value = formatted;
 });
 
-// Pro pole jména (a stejně tak můžeš použít pro příjmení)
+// nastavení inputů pro jméno a příjmení
 const nameInput = document.getElementById("clientName");
 const surnameInput = document.getElementById("clientSurname");
 
 nameInput.addEventListener("input", function(e) {
-    // Povolí pouze písmena (včetně české diakritiky) a mezery
     e.target.value = e.target.value.replace(/[^a-zA-ZáčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ\s]/g, "");
 });
 
 surnameInput.addEventListener("input", function(e) {
-    // Povolí pouze písmena (včetně české diakritiky) a mezery
     e.target.value = e.target.value.replace(/[^a-zA-ZáčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ\s]/g, "");
 });
-
-
-function getVocative(name) {
-    if (!name) return "";
-    
-    let trimmed = name.trim();
-    let lower = trimmed.toLowerCase();
-    let lastChar = lower.slice(-1);
-    let lastTwo = lower.slice(-2);
-    
-    // 1. Ženská nebo domácká jména končící na -a (Martina -> Martino, Anna -> Anno, Franta -> Franto)
-    if (lastChar === 'a') {
-        return trimmed.slice(0, -1) + 'o';
-    }
-    
-    // 2. Mužská jména končící na -ek (Zdeněk -> Zdeňku, Hynek -> Hynku)
-    if (lastTwo === 'ek') {
-        return trimmed.slice(0, -2) + 'ku';
-    }
-    
-    // 3. Jména končící na měkkou/obojetnou souhlásku (Tomáš -> Tomáši, Aleš -> Aleši)
-    if (['ž', 'š', 'č', 'ř', 'c', 'j'].includes(lastChar)) {
-        if (lower === 'jiří') return 'Jiří'; // Výjimka
-        return trimmed + 'i';
-    }
-    
-    // 4. Jména končící na h, ch, g (Ondřej - ne, ale např. Bohuš... h/ch/g -> u)
-    if (['h', 'ch', 'g'].includes(lastChar)) {
-        return trimmed + 'u';
-    }
-    
-    // 5. Ostatní souhlásky (Filip -> Filipe, Petr -> Petře, Martin -> Martine, Pavel -> Pavle)
-    const consonants = ['b', 'd', 'f', 'k', 'l', 'm', 'n', 'p', 'r', 's', 't', 'v', 'z'];
-    if (consonants.includes(lastChar)) {
-        return trimmed + 'e';
-    }
-    
-    // Výchozí fallback, pokud by jméno nespadalo do žádné pravidla
-    return trimmed;
-}
