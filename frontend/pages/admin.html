@@ -6,17 +6,18 @@
     <link rel="stylesheet" href="../css/general.css">
     <link rel="stylesheet" href="../css/admin.css">
 
+    <script src="https://kit.fontawesome.com/9e0a62895a.js" crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
     <main>
         <div class="admin_main_container">
-            <div class="admin_menu_wrapper box_glass_effect">
+            <div id="adminMenuWrapper" class="box_glass_effect">
                 <section class="admin_menu">
                     <div class="admin_menu_inside">
                         <ul class="text">
-                            <li><a href="#"><i class="fa-solid fa-angles-up"></i></a></li>
+                            <li><a href="#"><i class="fa-solid fa-angles-right" id="menuArrow"></i></a></li>
                             <li>
                                 <a href="#"><i class="fa-solid fa-house"></i></a>
                                 <a href="#">Přehled</a>
@@ -45,11 +46,23 @@
 
             <section class="admin_table box_glass_effect">
                 <div class="wrapper">
-                    
+                    <section id="dashboard" class="content">
+                        
+                    </section>
+                    <section id="events" class="content">
+                        
+                    </section>
+                    <section id="rezervations" class="content">
+                        
+                    </section>
+                    <section id="inbox" class="content">
+                        
+                    </section>
                 </div>
             </section>
         </div>
     </main>
-    <script src="https://kit.fontawesome.com/9e0a62895a.js" crossorigin="anonymous"></script>
+    
+    <script src="../js/admin.js"></script>
 </body>
 </html>
