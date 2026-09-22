@@ -46,6 +46,15 @@ document.addEventListener("DOMContentLoaded", function() {
     .then(data => {
         document.getElementById('header-placeholder').innerHTML = data;
 
+        const homeLogoLink = document.getElementById('homeLogoLink');
+        if (homeLogoLink) {
+            if (isSubpage) {
+                homeLogoLink.setAttribute('href', '../index.html');
+            } else {
+                homeLogoLink.setAttribute('href', 'index.html');
+            }
+        }
+
         const currentPath = window.location.pathname;
         let currentFile = currentPath.split('/').pop();
         if (!currentFile || currentFile === '') currentFile = 'index.html';
