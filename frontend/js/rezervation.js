@@ -17,6 +17,11 @@ document.addEventListener('DOMContentLoaded', function () {
         locale: 'cs',
         initialView: 'timeGridWeek',
 
+        // validRange: {
+        //     start: '2026-09-01',
+        //     end: '2026-10-20'
+        // },
+
         dayHeaderDidMount: function(info) {
             if (info.view.type === "dayGridMonth") return;
             info.el.style.cursor = "pointer";

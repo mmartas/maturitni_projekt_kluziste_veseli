@@ -108,3 +108,76 @@ function getVocative(name) {
     // Výchozí fallback, pokud by jméno nespadalo do žádné pravidla
     return trimmed;
 }
+
+// admin page - klikání na dané sekce
+function singlePageAdmin(icon, content, allContents) {
+    icon.addEventListener("click", (e) => {
+        e.preventDefault();
+
+        allContents.forEach(section => {
+            section.classList.remove("active");
+        });
+
+        content.classList.add("active");
+        if(content === inboxContent) {
+            loadMessages();
+        }
+    })
+}
+
+// načtení informací z tabulky reservations
+function loadMessages() {
+    fetch('http://localhost:3000/api/reservations')
+    .then(response => response.json())
+    .then(messages => {
+        const container = document.getElementById('messagesContainer');
+        container.innerHTML = '';
+
+        if (messages.length === 0) {
+            container.innerHTML = '<p>Žádné zprávy v inboxu.</p>';
+            return;
+        }
+
+        messages.forEach(msg => {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('one_message');
+
+            if (msg.is_read === 0) {
+                messageDiv.classList.add('unread');
+            }
+
+            messageDiv.innerHTML = `
+                <div class="message_preview">
+                    <span class="client_email">${msg.email}</span>
+                    <span class="message_subject">Potvrzení rezervace</span>
+                    <span class="message_body">${msg.note || 'Bez poznámky'}</span>
+                </div>
+                <div class="message_details">
+                    <p><strong>Jméno a příjmení:</strong> ${msg.name} ${msg.surname}</p>
+                    <p><strong>E-mail:</strong> ${msg.email}</p>
+                    <p><strong>Telefon:</strong> ${msg.phone || 'Neuvedeno'}</p>
+                    <p><strong>Rezervovaný termín:</strong> ${msg.date}</p>
+                    <p><strong>Poznámka:</strong> ${msg.note || 'Žádná poznámka'}</p>
+                </div>
+            `;
+
+            // Kliknutí na řádek zprávy (pro rozbalení/zabalení)
+            messageDiv.addEventListener('click', function(e) {
+                // Přepne třídu 'expanded', čímž se detaily ukážou nebo schovají
+                this.classList.toggle('expanded');
+
+                if (this.classList.contains('unread')) {
+                    this.classList.remove('unread');
+
+                    // Aktualizace v databázi přes PATCH endpoint
+                    fetch(`http://localhost:3000/api/reservations/${msg.id}/read`, {
+                        method: 'PATCH'
+                    }).catch(err => console.error("Chyba při označování zprávy jako přečtené:", err));
+                }
+            });
+
+            container.appendChild(messageDiv);
+        });
+    })
+    .catch(err => console.error("Chyba při načítání zpráv:", err));
+}
