@@ -109,22 +109,6 @@ function getVocative(name) {
     return trimmed;
 }
 
-// admin page - klikání na dané sekce
-function singlePageAdmin(icon, content, allContents) {
-    icon.addEventListener("click", (e) => {
-        e.preventDefault();
-
-        allContents.forEach(section => {
-            section.classList.remove("active");
-        });
-
-        content.classList.add("active");
-        if(content === inboxContent) {
-            loadMessages();
-        }
-    })
-}
-
 // načtení informací z tabulky reservations
 function loadMessages() {
     fetch('http://localhost:3000/api/reservations')
@@ -148,9 +132,10 @@ function loadMessages() {
 
             messageDiv.innerHTML = `
                 <div class="message_preview">
-                    <span class="client_email">${msg.email}</span>
                     <span class="message_subject">Potvrzení rezervace</span>
+                    <span class="client_email">${msg.email}</span>
                     <span class="message_body">${msg.note || 'Bez poznámky'}</span>
+                    <a href="#"><i class="fa-solid fa-trash-can"></i></a>
                 </div>
                 <div class="message_details">
                     <p><strong>Jméno a příjmení:</strong> ${msg.name} ${msg.surname}</p>
