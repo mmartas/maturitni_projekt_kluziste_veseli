@@ -13,7 +13,7 @@ main {
 }
 
 .admin_menu {
-    width: 190px;
+    width: 180px;
     height: 100%;
     color: white;
 }
@@ -33,7 +33,7 @@ main {
 .admin_menu ul {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 2rem;
     height: 100%;
 }
 
@@ -46,6 +46,10 @@ main {
 
 .admin_menu ul li:first-child a .fa-solid {
     font-size: 1rem;
+
+}
+.admin_menu ul li:first-child a .fa-solid:hover {
+    font-size: 1rem;
 }
 
 .admin_menu ul li:last-child {
@@ -56,19 +60,22 @@ main {
     text-decoration: none;
     color: white;
 }
-
-.admin_menu ul li a .fa-solid {
-    font-size: 2rem;
+.admin_menu ul li a .fa-solid, .admin_menu ul li a .fa-regular {
+    font-size: 1.6rem;
+    transition: all 0.3s ease-in-out;
+}
+.admin_menu ul li a .fa-solid:hover, .admin_menu ul li a .fa-regular:hover {
+    font-size: 1.8rem;
 }
 
 #adminMenuWrapper {
-    width: 100px;
+    width: 80px;
     overflow: hidden;
-    padding: 2rem;
+    padding: 1.5rem;
     transition: width 0.3s ease-in-out;
 }
 #adminMenuWrapper.active {
-    width: 256px;
+    width: 226px;
 }
 
 #menuArrow {
