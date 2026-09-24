@@ -1,4 +1,5 @@
-const menuArrow = document.getElementById("adminMenuArrow");
+const menuArrow = document.querySelector("#adminMenuArrow");
+const menuArrowIn = document.querySelector("#adminMenuArrow i")
 const menuWrapper = document.getElementById("adminMenuWrapper");
 
 const inboxRefreshArrow = document.getElementById("inboxRefreshArrow");
@@ -15,9 +16,10 @@ const reservationsContent = document.getElementById("reservations");
 const allContents = document.querySelectorAll("#admin_table .content");
 
 menuArrow.addEventListener("click", () => {
-    menuArrow.classList.toggle("active");
+    menuArrowIn.classList.toggle("active");
     menuWrapper.classList.toggle("active");
-});
+})
+
 let currentRotation = 0;
 inboxRefreshArrow.addEventListener("click", () => {
     currentRotation -= 360;

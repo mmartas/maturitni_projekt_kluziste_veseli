@@ -49,8 +49,8 @@ main {
     transition: all 0.3s ease-in-out;
 
 }
-#admin_menu ul li:first-child a .fa-solid:hover {
-    font-size: 1rem;
+#admin_menu ul li:first-child a i.active {
+    transform: rotate(180deg);
 }
 
 #admin_menu ul li:last-child {
@@ -111,12 +111,8 @@ main {
     align-items: center;
     text-decoration: none;
     color: var(--white-color);
+    flex-shrink: 0;
 }
-
-#adminMenuArrow.active {
-    transform: rotate(180deg);
-}
-
 
 #admin_table .wrapper {
     width: 100%;
@@ -125,6 +121,7 @@ main {
     display: flex;
     align-items: flex-start;
     justify-content: flex-start;
+    gap: 1rem;
 }
 
 #admin_table .content {
