@@ -28,6 +28,11 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// spuštění serveru - ověření v terminálu že běží
+app.listen(PORT, () => {
+    console.log(`Backend server úspěšně běží na adrese: http://localhost:${PORT}`);
+});
+
 // 1. API Endpoint pro FullCalendar (vrátí události z databáze)
 app.get('/api/events', async (req, res) => {
     try {
@@ -72,6 +77,8 @@ app.post('/api/reservations', async (req, res) => {
             [event_id, name, surname, email, phone, note, date]
         );
 
+        
+
         // email pro klienta
         const clientMailOptions = {
             from: '"Kluziště Veselí" <kluzistevcentruveseli@gmail.com>',
@@ -98,14 +105,10 @@ app.post('/api/reservations', async (req, res) => {
     }
 });
 
-
-// 2. GET pro STAŽENÍ rezervací do admin panelu (přidáš pod to)
+// 3. endpoint GET pro stažení rezervací do admin panelu, kvůli inboxu
 app.get('/api/reservations', async (req, res) => {
     try {
-        // Vybere všechny rezervace z databáze (např. seřazené od nejnovějších)
         const [rows] = await pool.query("SELECT * FROM reservations ORDER BY id DESC");
-        
-        // Pošle data ve formátu JSON do tvého admin JavaScriptu
         res.json(rows);
     } catch (err) {
         console.error("Chyba při načítání rezervací:", err);
@@ -113,22 +116,25 @@ app.get('/api/reservations', async (req, res) => {
     }
 });
 
-// Spuštění serveru
-app.listen(PORT, () => {
-    console.log(`Backend server úspěšně běží na adrese: http://localhost:${PORT}`);
-});
-
-// Endpoint pro označení rezervace jako přečtené
+// 4. endpoint pro získání informace o tom, jestli admin již přečetl danou zprávu v inboxu
 app.patch('/api/reservations/:id/read', async (req, res) => {
     try {
         const { id } = req.params;
-        
-        // Aktualizuje v databázi sloupec is_read na hodnotu 1 pro dané ID
         await pool.query("UPDATE reservations SET is_read = 1 WHERE id = ?", [id]);
-        
         res.json({ success: true });
     } catch (err) {
         console.error("Chyba při aktualizaci stavu zprávy:", err);
+        res.status(500).json({ error: "Chyba serveru" });
+    }
+});
+
+// 5. endpoint pro získání počtu nepřečtených rezervací v inboxu
+app.get('/api/reservations/unread-count', async (req, res) => {
+    try {
+        const [rows] = await pool.query("SELECT COUNT(*) AS count FROM reservations WHERE is_read = 0");
+        res.json({ unreadCount: rows[0].count });
+    } catch (err) {
+        console.error("Chyba při zjišťování počtu nepřečtených zpráv:", err);
         res.status(500).json({ error: "Chyba serveru" });
     }
 });

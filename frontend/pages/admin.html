@@ -14,28 +14,43 @@
     <main>
         <div class="admin_main_container">
             <section id="adminMenuWrapper" class="box_glass_effect">
-                <section id="admin_menu">
+                <section id="adminMenu">
                     <div class="admin_menu_inside">
                         <ul class="text">
-                            <li><a id="adminMenuArrow" class="box_glass_effect_red" href="#"><i class="fa-solid fa-angles-right" ></i></a></li>
                             <li>
-                                <a href="#" id="dashboardIcon"><i class="fa-solid fa-chart-line"></i></a>
+                                <a id="adminMenuArrow" class="box_glass_effect_red icon_arrow_menu_refresh" href="#">
+                                    <i class="fa-solid fa-angles-right" ></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" id="dashboardIcon" class="active menu_icons">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                </a>
                                 <a href="#">Přehled</a>
                             </li>
                             <li>
-                                <a href="#" id="eventsIcon"><i class="fa-regular fa-calendar"></i></a>
+                                <a href="#" id="eventsIcon" class="menu_icons">
+                                    <i class="fa-regular fa-calendar"></i>
+                                </a>
                                 <a href="#">Události</a>
                             </li>
                             <li>
-                                <a href="#" id="reservationsIcon"><i class="fa-regular fa-calendar-check"></i></a>
+                                <a href="#" id="reservationsIcon" class="menu_icons">
+                                    <i class="fa-regular fa-calendar-check"></i>
+                                </a>
                                 <a href="#">Rezervace</a>
                             </li>
                             <li>
-                                <a href="#" id="inboxIcon"><i class="fa-regular fa-envelope"></i></a>
+                                <a href="#" id="inboxIcon" class="menu_icons">
+                                    <span id="unreadMessagesIcon"></span>
+                                    <i class="fa-regular fa-envelope"></i>
+                                </a>
                                 <a href="#">Zprávy</a>
                             </li>
                             <li>
-                                <a href="#"><i class="fa-solid fa-user"></i></a>
+                                <a href="#" id="userIcon" class="menu_icons">
+                                    <i class="fa-solid fa-user"></i>
+                                </a>
                                 <a href="#">Administrátor</a>
                             </li>
                         </ul>
@@ -44,18 +59,20 @@
             </section>
             
 
-            <section id="admin_table" class="box_glass_effect">
+            <section id="adminContent" class="box_glass_effect">
                 <div class="wrapper">
-                    <a id="inboxRefreshArrow" class="box_glass_effect_red" href="#"><i class="fa-solid fa-arrow-rotate-left" ></i></a>
+                    <a id="inboxRefreshArrow" class="box_glass_effect_red icon_arrow_menu_refresh" href="#">
+                        <i class="fa-solid fa-arrow-rotate-left" ></i>
+                    </a>
                     <section id="dashboard" class="content active">
                         <div class="segment">
                             <p>Rozpis vyplněný do: <span id="endEventsDate"></span></p>
                         </div>
-                        <!-- <div class="segment">
+                        <div class="segment">
                             <p>Počet všech bloků k pronájmu: <span id="countAllRentDates"></span></p>
                             <p>Počet volných bloků k pronájmu: <span id="countFreeRentDates"></span></p>
                             <p>Počet obsazených bloků k pronájmu: <span id="countRentedDates"></span></p>
-                        </div> -->
+                        </div>
                     </section>
                     <section id="events" class="content">
                         

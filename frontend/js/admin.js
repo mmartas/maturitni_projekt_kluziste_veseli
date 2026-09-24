@@ -2,31 +2,33 @@ const menuArrow = document.querySelector("#adminMenuArrow");
 const menuArrowIn = document.querySelector("#adminMenuArrow i")
 const menuWrapper = document.getElementById("adminMenuWrapper");
 
-const inboxRefreshArrow = document.getElementById("inboxRefreshArrow");
-
-const inboxIcon = document.getElementById("inboxIcon");
 const dashboardIcon = document.getElementById("dashboardIcon");
 const eventsIcon = document.getElementById("eventsIcon");
 const reservationsIcon = document.getElementById("reservationsIcon");
+const inboxIcon = document.getElementById("inboxIcon");
 
-const inboxContent = document.getElementById("inbox");
 const dashboardContent = document.getElementById("dashboard");
 const eventsContent = document.getElementById("events");
 const reservationsContent = document.getElementById("reservations");
-const allContents = document.querySelectorAll("#admin_table .content");
+const inboxContent = document.getElementById("inbox");
+const allContents = document.querySelectorAll("#adminContent .content");
 
+const inboxRefreshArrow = document.getElementById("inboxRefreshArrow");
+
+// vysunutí meníčka v levém admin panelu po kliknutí na šipku + (otočení šipky animací)
 menuArrow.addEventListener("click", () => {
     menuArrowIn.classList.toggle("active");
     menuWrapper.classList.toggle("active");
 })
 
+// logika animovaného otáčení refresh šipky v content části admin panelu
 let currentRotation = 0;
 inboxRefreshArrow.addEventListener("click", () => {
     currentRotation -= 360;
     inboxRefreshArrow.style.transform = `rotate(${currentRotation}deg)`;
 })
 
-// Pole, které propojuje ikonu, textový odkaz a odpovídající obsah
+// pole, které propojuje ikonu, textový odkaz a obsah v celém admin panelu
 const navItems = [
     { icon: dashboardIcon, content: dashboardContent },
     { icon: eventsIcon, content: eventsContent },
@@ -39,26 +41,25 @@ navItems.forEach(item => {
         item.icon.addEventListener("click", (e) => {
             e.preventDefault();
 
-            // 1. Zneviditelníme všechen obsah a odebereme třídu active-icon VŠEM ikonám
             allContents.forEach(content => content.classList.remove("active"));
             navItems.forEach(nav => nav.icon.classList.remove("active"));
 
-            // 2. Zviditelníme vybraný obsah a rozsvítíme červeně aktuální ikonu
             item.content.classList.add("active");
             item.icon.classList.add("active");
-
-            // Pokud jde o inbox, rovnou načteme zprávy
-            if (item.icon === inboxIcon) {
-                loadMessages();
-            }
         });
     }
 });
 
-// Pokud chceš, aby byla některá ikona červená už při prvním načtení stránky (např. Dashboard):
-if (dashboardIcon) {
-    dashboardIcon.classList.add("active");
-}
-
-
-
+// po každém obnovení stránky pro jistotu znovunačtení zpráv a aktualizace odznáčku s počtem nepřečtených zpráv
+// + ošetření toho, aby se v 5s intervalu stránka nerefreshnula zrovna pokud má admin rozkliknutý nějaký email
+document.addEventListener("DOMContentLoaded", function() {
+    loadMessages();
+    updateUnreadBadge();
+    setInterval(() => {
+        const hasExpandedMessage = document.querySelector('.one_message.expanded');
+        if(!hasExpandedMessage) {
+            loadMessages();
+            updateUnreadBadge();
+        }
+    }, 5000);
+});

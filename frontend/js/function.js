@@ -29,6 +29,27 @@ function openModal(start, end) {
     document.getElementById("selectedDateInput").value = start;
 }
 
+// převod časového formátu
+function formatEventDate(start, end) {
+    const s = new Date(start);
+    const e = new Date(end);
+
+    const startTime =
+        s.getHours().toString().padStart(2, "0") + ":" +
+        s.getMinutes().toString().padStart(2, "0");
+
+    const endTime =
+        e.getHours().toString().padStart(2, "0") + ":" +
+        e.getMinutes().toString().padStart(2, "0");
+
+    const dateText =
+        s.getDate() + "." +
+        (s.getMonth() + 1) + "." +
+        s.getFullYear();
+
+    return `${dateText} ${startTime} - ${endTime}`;
+}
+
 // zavření modalu
 function closeModal() {
     modal.style.display = "none";
@@ -37,16 +58,6 @@ function closeModal() {
 
     formSubmitButton.disabled = false;
     formSubmitButton.textContent = "Odeslat rezervaci";
-}
-
-// uložení rezervace
-function sendReservation(data) {
-    return fetch("../assets/save-rezervation.php", {
-        method: "POST",
-        body: data
-    })
-
-    .then(res => res.json());
 }
 
 // plynulé srollování nahoru
@@ -65,7 +76,6 @@ function smoothScrollToTop(duration) {
             requestAnimationFrame(animation);
         }
     }
-
     requestAnimationFrame(animation);
 }
 
@@ -109,7 +119,7 @@ function getVocative(name) {
     return trimmed;
 }
 
-// načtení informací z tabulky reservations
+// načtení informací z tabulky reservations pro inbox pro admin panel
 function loadMessages() {
     fetch('http://localhost:3000/api/reservations')
     .then(response => response.json())
@@ -146,23 +156,42 @@ function loadMessages() {
                 </div>
             `;
 
-            // Kliknutí na řádek zprávy (pro rozbalení/zabalení)
             messageDiv.addEventListener('click', function(e) {
-                // Přepne třídu 'expanded', čímž se detaily ukážou nebo schovají
                 this.classList.toggle('expanded');
 
                 if (this.classList.contains('unread')) {
                     this.classList.remove('unread');
 
-                    // Aktualizace v databázi přes PATCH endpoint
                     fetch(`http://localhost:3000/api/reservations/${msg.id}/read`, {
                         method: 'PATCH'
-                    }).catch(err => console.error("Chyba při označování zprávy jako přečtené:", err));
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        updateUnreadBadge()
+                    })
+                    .catch(err => console.error("Chyba při označování zprávy jako přečtené:", err));
                 }
             });
-
             container.appendChild(messageDiv);
         });
     })
     .catch(err => console.error("Chyba při načítání zpráv:", err));
+}
+
+// aktualizuje počet nepřečtených zpráv
+function updateUnreadBadge() {
+    fetch('http://localhost:3000/api/reservations/unread-count')
+    .then(response => response.json())
+    .then(data => {
+        const badge = document.getElementById('unreadMessagesIcon');
+        if (!badge) return;
+
+        if (data.unreadCount > 0) {
+            badge.textContent = data.unreadCount;
+            badge.style.display = 'inline-flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    })
+    .catch(err => console.error("Chyba při načítání počtu nepřečtených:", err));
 }
