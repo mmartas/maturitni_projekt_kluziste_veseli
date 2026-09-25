@@ -33,6 +33,22 @@ app.listen(PORT, () => {
     console.log(`Backend server úspěšně běží na adrese: http://localhost:${PORT}`);
 });
 
+// formátování termínu z ISO formátu na formát datum-čas
+function formatEmailDate(dateString) {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    
+    const hours = d.getHours().toString().padStart(2, "0");
+    const minutes = d.getMinutes().toString().padStart(2, "0");
+    
+    const dateText = 
+        d.getDate() + "." + 
+        (d.getMonth() + 1) + "." + 
+        d.getFullYear();
+
+    return `${dateText} ${hours}:${minutes}`;
+}
+
 // 1. API Endpoint pro FullCalendar (vrátí události z databáze)
 app.get('/api/events', async (req, res) => {
     try {
@@ -77,14 +93,14 @@ app.post('/api/reservations', async (req, res) => {
             [event_id, name, surname, email, phone, note, date]
         );
 
-        
+        const formattedDate = formatEmailDate(date);
 
         // email pro klienta
         const clientMailOptions = {
             from: '"Kluziště Veselí" <kluzistevcentruveseli@gmail.com>',
             to: email,
             subject: 'Potvrzení rezervace kluziště',
-            text: `Dobrý den, ${name} ${surname},\n\nvaše rezervace na kluziště byla úspěšně vytvořena.\nTermín: ${date}\n\nTěšíme se na Vás!`
+            text: `Dobrý den, ${name} ${surname},\n\nvaše rezervace na kluziště byla úspěšně vytvořena.\nTermín: ${formattedDate}\n\nTěšíme se na Vás!`
         };
 
         // email pro administrátora
@@ -92,7 +108,7 @@ app.post('/api/reservations', async (req, res) => {
             from: '"Systém Kluziště" <kluzistevcentruveseli@gmail.com>',
             to: 'kluzistevcentruveseli@gmail.com',
             subject: 'Nová rezervace na kluzišti!',
-            text: `Byla vytvořena nová rezervace:\n\nJméno: ${name} ${surname}\nE-mail: ${email}\nTelefon: ${phone}\nTermín: ${date}\nPoznámka: ${note || 'žádná'}`
+            text: `Byla vytvořena nová rezervace:\n\nJméno: ${name} ${surname}\nE-mail: ${email}\nTelefon: ${phone}\nTermín: ${formattedDate}\nPoznámka: ${note || 'žádná'}`
         };
 
         await transporter.sendMail(clientMailOptions);

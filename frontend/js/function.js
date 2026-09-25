@@ -29,27 +29,6 @@ function openModal(start, end) {
     document.getElementById("selectedDateInput").value = start;
 }
 
-// převod časového formátu
-function formatEventDate(start, end) {
-    const s = new Date(start);
-    const e = new Date(end);
-
-    const startTime =
-        s.getHours().toString().padStart(2, "0") + ":" +
-        s.getMinutes().toString().padStart(2, "0");
-
-    const endTime =
-        e.getHours().toString().padStart(2, "0") + ":" +
-        e.getMinutes().toString().padStart(2, "0");
-
-    const dateText =
-        s.getDate() + "." +
-        (s.getMonth() + 1) + "." +
-        s.getFullYear();
-
-    return `${dateText} ${startTime} - ${endTime}`;
-}
-
 // zavření modalu
 function closeModal() {
     modal.style.display = "none";
@@ -119,6 +98,22 @@ function getVocative(name) {
     return trimmed;
 }
 
+// formátování datumu z ISO formátu na formát datum-čas
+function formatEmailDate(dateString) {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    
+    const hours = d.getHours().toString().padStart(2, "0");
+    const minutes = d.getMinutes().toString().padStart(2, "0");
+    
+    const dateText = 
+        d.getDate() + "." + 
+        (d.getMonth() + 1) + "." + 
+        d.getFullYear();
+
+    return `${dateText} ${hours}:${minutes}`;
+}
+
 // načtení informací z tabulky reservations pro inbox pro admin panel
 function loadMessages() {
     fetch('http://localhost:3000/api/reservations')
@@ -140,6 +135,8 @@ function loadMessages() {
                 messageDiv.classList.add('unread');
             }
 
+            const formattedDate = formatEmailDate(msg.date);
+
             messageDiv.innerHTML = `
                 <div class="message_preview">
                     <span class="message_subject">Potvrzení rezervace</span>
@@ -151,7 +148,7 @@ function loadMessages() {
                     <p><strong>Jméno a příjmení:</strong> ${msg.name} ${msg.surname}</p>
                     <p><strong>E-mail:</strong> ${msg.email}</p>
                     <p><strong>Telefon:</strong> ${msg.phone || 'Neuvedeno'}</p>
-                    <p><strong>Rezervovaný termín:</strong> ${msg.date}</p>
+                    <p><strong>Rezervovaný termín:</strong> ${formattedDate}</p>
                     <p><strong>Poznámka:</strong> ${msg.note || 'Žádná poznámka'}</p>
                 </div>
             `;
