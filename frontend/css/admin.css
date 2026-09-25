@@ -220,3 +220,7 @@ main {
     flex-direction: column;
     gap: 1rem;
 }
+
+.fc .fc-view-harness-active > .fc-view {
+    padding: 1rem;
+}

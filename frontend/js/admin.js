@@ -15,6 +15,9 @@ const allContents = document.querySelectorAll("#adminContent .content");
 
 const inboxRefreshArrow = document.getElementById("inboxRefreshArrow");
 
+let calendar;
+let calendarInitialized = false;
+
 // vysunutí meníčka v levém admin panelu po kliknutí na šipku + (otočení šipky animací)
 menuArrow.addEventListener("click", () => {
     menuArrowIn.classList.toggle("active");
@@ -28,6 +31,8 @@ inboxRefreshArrow.addEventListener("click", () => {
     inboxRefreshArrow.style.transform = `rotate(${currentRotation}deg)`;
 })
 
+
+
 // pole, které propojuje ikonu, textový odkaz a obsah v celém admin panelu
 const navItems = [
     { icon: dashboardIcon, content: dashboardContent },
@@ -35,6 +40,7 @@ const navItems = [
     { icon: reservationsIcon, content: reservationsContent },
     { icon: inboxIcon, content: inboxContent }
 ];
+
 
 navItems.forEach(item => {
     if (item.icon && item.content) {
@@ -46,6 +52,133 @@ navItems.forEach(item => {
 
             item.content.classList.add("active");
             item.icon.classList.add("active");
+
+            if (item.content === eventsContent) {
+                const calendarEl = document.getElementById('calendar');
+
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                    locale: 'cs',
+                    initialView: 'timeGridWeek',
+                    height: '100%',
+                    // validRange: {
+                    //     start: '2026-09-01',
+                    //     end: '2026-10-20'
+                    // },
+
+                    dayHeaderDidMount: function(info) {
+                        if (info.view.type === "dayGridMonth") return;
+                        info.el.style.cursor = "pointer";
+                        info.el.addEventListener("click", () => {
+                            calendar.changeView('timeGridDay', info.date);
+                        });
+                    },
+
+                    dayMaxEvents: 3,
+
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'timeGridDay,timeGridWeek,dayGridMonth'
+                    },
+
+                    buttonText: {
+                        today: "Dnes",
+                        week: "Týden",
+                        day: "Den",
+                        month: "Měsíc"
+                    },
+                    
+                    expandRows: false,
+                    firstDay: 1,
+
+                    slotMinTime: '06:00:00',
+                    slotMaxTime: '23:00:00',
+
+                    slotDuration: '01:00:00',
+                    slotLabelInterval: '01:00',
+
+                    allDaySlot: false,
+                    moreLinkText: 'další',
+
+                    events: "http://localhost:3000/api/events",
+
+                    // cursor pointer na eventy pro pronájem a obarvení eventů podle typu
+                    eventClassNames: function(arg) {
+                        const type = arg.event.extendedProps.type;
+                        const booked = arg.event.extendedProps.booked;
+
+                        if(type === 'rent') {
+                            if(!booked) {
+                                return ['event-rent-available'];
+                            } else {
+                                return ['event-rent-booked'];
+                            }
+                        } else if (type === 'public') {
+                            return ['event-public'];
+                        } else if (type === 'booked') {
+                            return ['event-booked'];
+                        } else if (type === 'maintenance') {
+                            return ['event-maintenance'];
+                        } else if (type === 'school') {
+                            return ['event-school'];
+                        }
+                        return [];
+                    },
+
+                    dayCellDidMount: function(info) {
+                        if (info.view.type === "dayGridMonth") {
+                            info.el.style.cursor = "pointer";
+                        }
+                    },
+
+                    dateClick: function(info) {
+                        if (info.view.type === "dayGridMonth") {
+                            calendar.changeView('timeGridDay', info.date);
+                        }
+                    },
+
+                    // nezalomení hlavičky "po 11.4." při responzivitě
+                    dayHeaderContent: function(arg) {
+                        const date = arg.date;
+                        const day = date.toLocaleDateString('cs-CZ', { weekday: 'short' });
+                        const fullDate = date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
+                        const dayDate = date.toLocaleDateString('cs-CZ', { day: 'numeric' });
+
+                        if (arg.view.type === "dayGridMonth") {
+                            return {
+                                html: `<span class="day-name">${day}</span>`
+                            };
+                        }
+
+                        if (arg.view.type === "timeGridWeek" && window.innerWidth <= 430) {
+                            return {
+                                html: `
+                                    <div class="day-header">
+                                        <span class="day-name">${day}</span>
+                                        <span class="day-date">${dayDate}</span>
+                                    </div>
+                                `
+                            };
+                        }
+
+                        return {
+                            html: `
+                                <div class="day-header">
+                                    <span class="day-name">${day}</span>
+                                    <span class="day-date">${fullDate}</span>
+                                </div>
+                            `
+                        };
+                    },
+                });
+
+                calendar.render();
+                calendarInitialized = true;
+            } else {
+                setTimeout(() => {
+                    calendar.updateSize();
+                }, 50);
+            }
         });
     }
 });
@@ -68,140 +201,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-    const calendarEl = document.getElementById('calendar');
-
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        locale: 'cs',
-        initialView: 'timeGridWeek',
-        height: '100%',
-        // validRange: {
-        //     start: '2026-09-01',
-        //     end: '2026-10-20'
-        // },
-
-        dayHeaderDidMount: function(info) {
-            if (info.view.type === "dayGridMonth") return;
-            info.el.style.cursor = "pointer";
-            info.el.addEventListener("click", () => {
-                calendar.changeView('timeGridDay', info.date);
-            });
-        },
-
-        dayMaxEvents: 3,
-
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'timeGridDay,timeGridWeek,dayGridMonth'
-        },
-
-        buttonText: {
-            today: "Dnes",
-            week: "Týden",
-            day: "Den",
-            month: "Měsíc"
-        },
-        
-        expandRows: false,
-        firstDay: 1,
-
-        slotMinTime: '06:00:00',
-        slotMaxTime: '23:00:00',
-
-        slotDuration: '01:00:00',
-        slotLabelInterval: '01:00',
-
-        allDaySlot: false,
-        moreLinkText: 'další',
-
-        events: "http://localhost:3000/api/events",
-
-        // cursor pointer na eventy pro pronájem a obarvení eventů podle typu
-        eventClassNames: function(arg) {
-            const type = arg.event.extendedProps.type;
-            const booked = arg.event.extendedProps.booked;
-
-            if(type === 'rent') {
-                if(!booked) {
-                    return ['event-rent-available'];
-                } else {
-                    return ['event-rent-booked'];
-                }
-            } else if (type === 'public') {
-                return ['event-public'];
-            } else if (type === 'booked') {
-                return ['event-booked'];
-            } else if (type === 'maintenance') {
-                return ['event-maintenance'];
-            } else if (type === 'school') {
-                return ['event-school'];
-            }
-            return [];
-        },
-
-        // otevření objednacího modalu při kliknutí na volný pronájem
-        eventClick: function(info){
-            const type = info.event.extendedProps.type;
-            const booked = info.event.extendedProps.booked;
-
-            if (type !== "rent" || booked) {
-                return;
-            }
-
-            window.selectedEventId = info.event.id;
-            openModal(info.event.startStr, info.event.endStr);
-        },
-
-        dayCellDidMount: function(info) {
-            if (info.view.type === "dayGridMonth") {
-                info.el.style.cursor = "pointer";
-            }
-        },
-
-        dateClick: function(info) {
-            if (info.view.type === "dayGridMonth") {
-                calendar.changeView('timeGridDay', info.date);
-            }
-        },
-
-        // nezalomení hlavičky "po 11.4." při responzivitě
-        dayHeaderContent: function(arg) {
-            const date = arg.date;
-            const day = date.toLocaleDateString('cs-CZ', { weekday: 'short' });
-            const fullDate = date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
-            const dayDate = date.toLocaleDateString('cs-CZ', { day: 'numeric' });
-
-            if (arg.view.type === "dayGridMonth") {
-                return {
-                    html: `<span class="day-name">${day}</span>`
-                };
-            }
-
-            if (arg.view.type === "timeGridWeek" && window.innerWidth <= 430) {
-                return {
-                    html: `
-                        <div class="day-header">
-                            <span class="day-name">${day}</span>
-                            <span class="day-date">${dayDate}</span>
-                        </div>
-                    `
-                };
-            }
-
-            return {
-                html: `
-                    <div class="day-header">
-                        <span class="day-name">${day}</span>
-                        <span class="day-date">${fullDate}</span>
-                    </div>
-                `
-            };
-        },
-    });
-
-    calendar.render();
-    
-
     document.getElementById("insertEventsForm").addEventListener("submit", function(e) {
         e.preventDefault();
 
