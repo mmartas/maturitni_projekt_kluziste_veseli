@@ -82,6 +82,22 @@ app.get('/api/events', async (req, res) => {
     }
 });
 
+app.post('/api/events', async (req, res) => {
+    try {
+        const { title, start, end, type } = req.body;
+
+        await pool.query(
+            "INSERT INTO events (title, start, end, type) VALUES (?, ?, ?, ?)",
+            [title, start, end, type]
+        );
+
+        res.json({success: true, message: "Událost byla vložena!"});
+    } catch (err) {
+        console.error("Chyba při vkládání událostí: ", err);
+        res.status(500).json({ error: "Chyba serveru při ukládání" });
+    }
+})
+
 // 2. API Endpoint pro FullCalendar (ukládá nové rezervace do databáze a odesílá e-maily)
 app.post('/api/reservations', async (req, res) => {
     try {

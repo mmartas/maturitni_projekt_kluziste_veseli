@@ -112,6 +112,7 @@ main {
 #adminContent .content {
     display: none;
     width: 100%;
+    height: 100%;
 }
 #adminContent .content.active {
     display: flex;
