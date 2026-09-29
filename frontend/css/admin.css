@@ -249,3 +249,11 @@ main {
 .fc {
     width: 70% !important;
 }
+
+#bookedClientName {
+    display: none !important;
+}
+
+#bookedClientName.active {
+    display: flex !important;
+}

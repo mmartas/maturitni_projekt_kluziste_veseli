@@ -197,7 +197,20 @@ document.addEventListener("DOMContentLoaded", function() {
     }, 5000);
 });
 
+const bookedClientName = document.getElementById("bookedClientName");
 
+let adminBookedClientName = document.getElementById("adminBookedClientName");
+
+let changeEventTitle = document.getElementById("eventTitle");
+
+
+changeEventTitle.addEventListener("change", function(e) {
+    if(this.value === "booked") {
+        bookedClientName.classList.add("active");
+    } else {
+        bookedClientName.classList.remove("active");
+    }
+})
 
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -205,22 +218,34 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
 
         let eventTitle = document.getElementById("eventTitle").value;
+
         let eventType = "";
 
         if(eventTitle === "public") {
             eventType = "public";
+            eventTitle = "Veřejné bruslení";
         } else if (eventTitle === "school") {
             eventType =  "school";
+            eventTitle = "Školní akce";
         } else if (eventTitle === "rent") {
             eventType = "rent";
+            eventTitle = "Možnost pronájmu";
         } else if (eventTitle === "maintenance") {
             eventType = "maintenance";
+            eventTitle = "Údržba ledu";
         } else if (eventTitle === "booked") {
             eventType = "booked";
+            eventTitle = "Obsazeno"
+            
+        }
+
+        let finalTitle = eventTitle;
+        if (eventType === "booked" && adminBookedClientName.value.trim() !== "") {
+            finalTitle = `${eventTitle}: ${adminBookedClientName.value}`;
         }
 
         const formData = {
-            title: eventTitle,
+            title: finalTitle,
             start: document.getElementById("eventStart").value,
             end: document.getElementById("eventEnd").value,
             type: eventType
