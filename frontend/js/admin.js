@@ -33,7 +33,8 @@ inboxRefreshArrow.addEventListener("click", () => {
     inboxRefreshArrow.style.transform = `rotate(${currentRotation}deg)`;
 })
 
-
+let currentEditingId = null;
+let currentEventIsBooked = false;
 
 // pole, které propojuje ikonu, textový odkaz a obsah v celém admin panelu
 const navItems = [
@@ -105,17 +106,55 @@ navItems.forEach(item => {
 
                     events: "http://localhost:3000/api/events",
 
+                    eventClick: function(info) {
+                        currentEditingId = info.event.id;
+                        
+                        // Spolehlivá detekce: Zjistíme, zda má event rezervaci (podle booked příznaku nebo přítomnosti příjmení klienta)
+                        const bookedProp = info.event.extendedProps.booked;
+                        const clientSurname = info.event.extendedProps.client_surname;
+                        
+                        currentEventIsBooked = (bookedProp === true || bookedProp === 1 || (clientSurname && clientSurname.trim() !== ""));
+
+                        const eventType = info.event.extendedProps.type;
+                        const fullTitle = info.event.title;
+
+                        const eventTitleSelect = document.getElementById("eventTitle");
+                        eventTitleSelect.value = eventType;
+
+                        const clientNameInput = document.getElementById("adminBookedClientName");
+
+                        if (currentEventIsBooked) {
+                            clientInfo.forEach(element => element.classList.add("active"));
+                            const match = fullTitle.match(/\(([^)]+)\)/);
+                            clientNameInput.value = match ? match[1] : (clientSurname || "");
+                        } else {
+                            clientInfo.forEach(element => element.classList.remove("active"));
+                            clientNameInput.value = "";
+                        }
+
+                        document.getElementById("eventStart").value = info.event.startStr.slice(0, 16);
+                        document.getElementById("eventEnd").value = info.event.endStr ? info.event.endStr.slice(0, 16) : "";
+
+                        document.getElementById("submitBtn").textContent = "Potvrdit změny";
+                        
+                        const deleteBtn = document.getElementById("deleteBtn");
+                        if (currentEventIsBooked) {
+                            deleteBtn.textContent = "Zrušit rezervaci"; // Jasně vidíme, že budeme rušit jen rezervaci
+                        } else {
+                            deleteBtn.textContent = "Odstranit událost"; // Budeme mazat celý event
+                        }
+
+                        deleteBtn.style.display = "inline-block";
+                        document.getElementById("cancelBtn").style.display = "inline-block";
+                    },
+
                     // cursor pointer na eventy pro pronájem a obarvení eventů podle typu
                     eventClassNames: function(arg) {
                         const type = arg.event.extendedProps.type;
                         const booked = arg.event.extendedProps.booked;
 
                         if(type === 'rent') {
-                            if(!booked) {
-                                return ['event-rent-available'];
-                            } else {
-                                return ['event-rent-booked'];
-                            }
+                            return ['event-rent'];
                         } else if (type === 'public') {
                             return ['event-public'];
                         } else if (type === 'booked') {
@@ -201,77 +240,22 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 const bookedClientName = document.getElementById("bookedClientName");
-
+const clientInfo = document.querySelectorAll(".clientInfo");
 let adminBookedClientName = document.getElementById("adminBookedClientName");
 
 let changeEventTitle = document.getElementById("eventTitle");
 
 changeEventTitle.addEventListener("change", function(e) {
     if(this.value === "booked") {
-        bookedClientName.classList.add("active");
+        clientInfo.forEach(element => {
+            element.classList.add("active");
+        })
     } else {
-        bookedClientName.classList.remove("active");
+        clientInfo.forEach(element => {
+            element.classList.remove("active");
+        })
     }
 })
-
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById("insertEventsForm").addEventListener("submit", function(e) {
-        e.preventDefault();
-
-        let eventTitle = document.getElementById("eventTitle").value;
-
-        let eventType = "";
-
-        if(eventTitle === "public") {
-            eventType = "public";
-            eventTitle = "Veřejné bruslení";
-        } else if (eventTitle === "school") {
-            eventType =  "school";
-            eventTitle = "Školní akce";
-        } else if (eventTitle === "rent") {
-            eventType = "rent";
-            eventTitle = "Možnost pronájmu";
-        } else if (eventTitle === "maintenance") {
-            eventType = "maintenance";
-            eventTitle = "Údržba ledu";
-        } else if (eventTitle === "booked") {
-            eventType = "booked";
-            eventTitle = "Obsazeno"
-            
-        }
-
-        let finalTitle = eventTitle;
-        if (eventType === "booked" && adminBookedClientName.value.trim() !== "") {
-            finalTitle = `${eventTitle}: ${adminBookedClientName.value}`;
-        }
-
-        const formData = {
-            title: finalTitle,
-            start: document.getElementById("eventStart").value,
-            end: document.getElementById("eventEnd").value,
-            type: eventType
-        };
-
-        console.log(formData);
-
-        fetch('http://localhost:3000/api/events', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        })
-        .then(response => response.json())
-        .then(res => {
-            if(res.success) {
-                calendar.refetchEvents(); 
-            }
-        })
-        .catch(error => console.error('Chyba:', error));
-    })
-});
-
-
 
 let savedLimitDate = null; // Globální proměnná pro uložení limitu
 
@@ -327,3 +311,131 @@ if (limitDateInput) {
         .catch(error => console.error('Chyba při ukládání:', error));
     });
 }
+
+
+document.getElementById("cancelBtn").addEventListener("click", function() {
+    resetFormMode();
+});
+
+function resetFormMode() {
+    currentEditingId = null;
+    document.getElementById("insertEventsForm").reset();
+    document.querySelectorAll(".clientInfo").forEach(element => {
+        element.classList.remove("active");
+    })
+    document.getElementById("submitBtn").textContent = "Přidat událost";
+    document.getElementById("deleteBtn").style.display = "none";
+    document.getElementById("cancelBtn").style.display = "none";
+}
+
+
+document.getElementById("insertEventsForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const selectedValue = document.getElementById("eventTitle").value;
+    const clientNameVal = document.getElementById("adminBookedClientName").value;
+    const clientSurnameVal = document.getElementById("adminBookedClientSurname").value;
+    const clientTelVal = document.getElementById("adminBookedClientTel").value;
+    const clientEmailVal = document.getElementById("adminBookedClientEmail").value;
+    
+    let eventType = selectedValue;
+    let eventTitleText = "";
+
+    if(selectedValue === "public") eventTitleText = "Veřejné bruslení";
+    else if (selectedValue === "school") eventTitleText = "Školní akce";
+    else if (selectedValue === "rent") eventTitleText = "Možnost pronájmu";
+    else if (selectedValue === "maintenance") eventTitleText = "Údržba ledu";
+    else if (selectedValue === "booked") eventTitleText = "Obsazeno";
+
+    let finalTitle = eventTitleText;
+    if (selectedValue === "booked" && clientNameVal.trim() !== "") {
+        finalTitle = `${eventTitleText} (${clientNameVal})`;
+    }
+
+    const formData = {
+        title: finalTitle,
+        start: document.getElementById("eventStart").value,
+        end: document.getElementById("eventEnd").value,
+        type: eventType
+    };
+
+    // Určíme, jestli děláme PUT (update) nebo POST (create)
+    const url = currentEditingId 
+        ? `http://localhost:3000/api/events/${currentEditingId}` 
+        : 'http://localhost:3000/api/events';
+    
+    const method = currentEditingId ? 'PUT' : 'POST';
+
+    fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(res => {
+        if(res.success) {
+            calendar.refetchEvents(); 
+            resetFormMode(); // Vrátíme formulář do výchozího stavu
+        }
+    })
+    .catch(error => console.error('Chyba:', error));
+});
+
+// Obsluha tlačítka pro smazání události přímo z formuláře
+document.getElementById("deleteBtn").addEventListener("click", function() {
+    if (!currentEditingId) return;
+
+    if (confirm("Opravdu chceš tuto událost smazat?")) {
+        fetch(`http://localhost:3000/api/events/${currentEditingId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(res => {
+            if (res.success) {
+                calendar.refetchEvents();
+                resetFormMode();
+            }
+        })
+        .catch(error => console.error('Chyba při mazání:', error));
+    }
+});
+
+
+document.getElementById("deleteBtn").addEventListener("click", function() {
+    if (!currentEditingId) return;
+
+    if (currentEventIsBooked) {
+        // 1. KDYŽ JE OBSAZENO -> Mažeme POUZE záznam v tabulce reservations!
+        if (confirm("Opravdu chceš zrušit tuto rezervaci? Blok v kalendáři se vrátí jako volný pronájem.")) {
+            fetch(`http://localhost:3000/api/reservations/by-event/${currentEditingId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(res => {
+                if (res.success) {
+                    calendar.refetchEvents();
+                    resetFormMode();
+                    console.log("Rezervace zrušena, event v tabulce events zůstal zachován.");
+                } else {
+                    alert("Nepodařilo se zrušit rezervaci.");
+                }
+            })
+            .catch(error => console.error('Chyba při rušení rezervace:', error));
+        }
+    } else {
+        // 2. KDYŽ JE VOLNO -> Mažeme celou událost z tabulky events
+        if (confirm("Opravdu chceš tuto událost smazat?")) {
+            fetch(`http://localhost:3000/api/events/${currentEditingId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(res => {
+                if (res.success) {
+                    calendar.refetchEvents();
+                    resetFormMode();
+                }
+            })
+            .catch(error => console.error('Chyba při mazání:', error));
+        }
+    }
+});

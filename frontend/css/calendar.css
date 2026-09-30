@@ -86,6 +86,9 @@
 }
 
 /* eventy */
+.event-rent {
+    background-color: green !important;
+}
 .event-rent-available {
     cursor: pointer !important;
     background-color: green !important;

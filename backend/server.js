@@ -50,6 +50,33 @@ function formatEmailDate(dateString) {
     return `${dateText} ${hours}:${minutes}`;
 }
 
+// Pomocná funkce pro přepočet a uložení všech statistik pronájmů
+async function updateRentCounts() {
+    try {
+        // 1. Spočítáme volné pronájmy (type = 'rent' a booked = 0)
+        const [freeRows] = await pool.query("SELECT COUNT(*) AS total FROM events WHERE type = 'rent' ");
+        const freeCount = freeRows[0].total;
+
+        // 2. Spočítáme obsazené pronájmy (type = 'rent' a booked = 1)
+        const [bookedRows] = await pool.query("SELECT COUNT(*) AS total FROM events WHERE type = 'booked' ");
+        const bookedCount = bookedRows[0].total;
+
+        // 3. Spočítáme celkový počet pronájmů (všechny s type = 'rent')
+        const [allRows] = await pool.query("SELECT COUNT(*) AS total FROM events WHERE type = 'rent' OR type = 'booked' ");
+        const allCount = allRows[0].total;
+
+        // 4. Uložíme všechny tři hodnoty najednou do tabulky setting
+        await pool.query(
+            "UPDATE setting SET count_free_rent = ?, count_booked_rent = ?, count_all_rent = ? WHERE id = 1",
+            [freeCount, bookedCount, allCount]
+        );
+        
+        console.log(`Statistiky pronájmů aktualizovány -> Volné: ${freeCount}, Obsazené: ${bookedCount}, Celkem: ${allCount}`);
+    } catch (err) {
+        console.error("Chyba při aktualizaci statistik pronájmů:", err);
+    }
+}
+
 // 1. API Endpoint pro FullCalendar (vrátí události z databáze)
 app.get('/api/events', async (req, res) => {
     try {
@@ -91,6 +118,8 @@ app.post('/api/events', async (req, res) => {
             "INSERT INTO events (title, start, end, type) VALUES (?, ?, ?, ?)",
             [title, start, end, type]
         );
+
+        await updateRentCounts();
 
         res.json({success: true, message: "Událost byla vložena!"});
     } catch (err) {
@@ -202,5 +231,76 @@ app.post('/api/setting', async (req, res) => {
     } catch (err) {
         console.error("Chyba při ukládání nastavení:", err);
         res.status(500).json({ error: "Chyba serveru" });
+    }
+});
+
+
+// Úprava existující události (PUT)
+app.put('/api/events/:id', async (req, res) => {
+    try {
+        const eventId = req.params.id;
+        const { title, start, end, type } = req.body;
+
+        await pool.query(
+            "UPDATE events SET title = ?, start = ?, end = ?, type = ? WHERE id = ?",
+            [title, start, end, type, eventId]
+        );
+
+        await updateRentCounts();
+
+        res.json({ success: true, message: "Událost byla aktualizována" });
+    } catch (err) {
+        console.error("Chyba při aktualizaci události:", err);
+        res.status(500).json({ error: "Chyba serveru" });
+    }
+});
+
+// Smazání události (DELETE)
+app.delete('/api/events/:id', async (req, res) => {
+    try {
+        const eventId = req.params.id;
+        await pool.query("DELETE FROM events WHERE id = ?", [eventId]);
+        await updateRentCounts();
+        res.json({ success: true, message: "Událost byla smazána" });
+    } catch (err) {
+        console.error("Chyba při mazání:", err);
+        res.status(500).json({ error: "Chyba serveru" });
+    }
+});
+
+// Zrušení rezervace adminem (smaže rezervaci z reservations, čímž se event v kalendáři uvolní)
+app.delete('/api/reservations/:id', async (req, res) => {
+    try {
+        const reservationId = req.params.id;
+
+        // 1. Smažeme rezervaci podle jejího ID
+        await pool.query("DELETE FROM reservations WHERE id = ?", [reservationId]);
+
+        // 2. Aktualizujeme statistiky v tabulce setting
+        await updateRentCounts();
+
+        res.json({ success: true, message: "Rezervace byla zrušena a blok je opět volný." });
+    } catch (err) {
+        console.error("Chyba při rušení rezervace:", err);
+        res.status(500).json({ error: "Chyba serveru při rušení rezervace" });
+    }
+});
+
+
+// Zrušení rezervace podle ID eventu (smaže pouze záznam v reservations, event zůstane)
+app.delete('/api/reservations/by-event/:eventId', async (req, res) => {
+    try {
+        const eventId = req.params.eventId;
+        
+        // Smažeme záznam POUZE z tabulky reservations
+        await pool.query("DELETE FROM reservations WHERE event_id = ?", [eventId]);
+
+        // Aktualizujeme statistiky v tabulce setting
+        await updateRentCounts();
+
+        res.json({ success: true, message: "Rezervace byla zrušena a blok je opět volný." });
+    } catch (err) {
+        console.error("Chyba při rušení rezervace k eventu:", err);
+        res.status(500).json({ error: "Chyba serveru při rušení rezervace" });
     }
 });

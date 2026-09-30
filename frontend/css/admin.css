@@ -251,14 +251,18 @@ main {
     width: 70% !important;
 }
 
-#bookedClientName {
+.clientInfo {
     display: none !important;
 }
 
-#bookedClientName.active {
+.clientInfo.active {
     display: flex !important;
 }
 
 .dateLimit {
     margin-top: auto;
+}
+
+#deleteBtn, #cancelBtn {
+    display: none;
 }
