@@ -107,6 +107,7 @@ main {
     align-items: flex-start;
     justify-content: flex-start;
     gap: 1rem;
+    color: var(--white-color);
 }
 
 #adminContent .content {
@@ -256,4 +257,8 @@ main {
 
 #bookedClientName.active {
     display: flex !important;
+}
+
+.dateLimit {
+    margin-top: auto;
 }

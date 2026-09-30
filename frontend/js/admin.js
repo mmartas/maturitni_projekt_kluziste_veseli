@@ -15,6 +15,8 @@ const allContents = document.querySelectorAll("#adminContent .content");
 
 const inboxRefreshArrow = document.getElementById("inboxRefreshArrow");
 
+const today = new Date().toISOString().split('T')[0];
+
 let calendar;
 let calendarInitialized = false;
 
@@ -60,10 +62,11 @@ navItems.forEach(item => {
                     locale: 'cs',
                     initialView: 'timeGridWeek',
                     height: '100%',
-                    // validRange: {
-                    //     start: '2026-09-01',
-                    //     end: '2026-10-20'
-                    // },
+
+                    validRange: {
+                        start: today,
+                        end: savedLimitDate ? savedLimitDate : undefined // Pokud je z DB načtené datum, použije se
+                    },
 
                     dayHeaderDidMount: function(info) {
                         if (info.view.type === "dayGridMonth") return;
@@ -203,7 +206,6 @@ let adminBookedClientName = document.getElementById("adminBookedClientName");
 
 let changeEventTitle = document.getElementById("eventTitle");
 
-
 changeEventTitle.addEventListener("change", function(e) {
     if(this.value === "booked") {
         bookedClientName.classList.add("active");
@@ -211,7 +213,6 @@ changeEventTitle.addEventListener("change", function(e) {
         bookedClientName.classList.remove("active");
     }
 })
-
 
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById("insertEventsForm").addEventListener("submit", function(e) {
@@ -269,3 +270,60 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => console.error('Chyba:', error));
     })
 });
+
+
+
+let savedLimitDate = null; // Globální proměnná pro uložení limitu
+
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Načteme nastavení z databáze při startu
+    fetch('http://localhost:3000/api/setting')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.limitDate) {
+                // Formát datumu z databáze ořízneme na YYYY-MM-DD, aby ho input type="date" akceptoval
+                savedLimitDate = data.limitDate.split('T')[0];
+                
+                const limitDateInput = document.getElementById("limitDate");
+                const dashboardLimitDate = document.getElementById("endEventsDate");
+                if (limitDateInput) {
+                    limitDateInput.value = savedLimitDate; // Datum svítí v inputu
+                }
+                dashboardLimitDate.innerHTML = savedLimitDate;
+            }
+        })
+        .catch(error => console.error('Chyba při načítání nastavení:', error));
+});
+
+const limitDateInput = document.getElementById("limitDate");
+
+if (limitDateInput) {
+    limitDateInput.addEventListener("change", function() {
+        const selectedDate = this.value; // Např. "2026-10-05"
+        const today = new Date().toISOString().split('T')[0];
+
+        // 1. Odešleme data na backend do tabulky setting
+        fetch('http://localhost:3000/api/setting', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ limitDate: selectedDate })
+        })
+        .then(response => response.json())
+        .then(res => {
+            if (res.success) {
+                console.log("Limitní datum úspěšně uloženo do databáze.");
+                
+                // 2. Okamžitě aktualizujeme kalendář na obrazovce
+                if (calendar) {
+                    calendar.setOption('validRange', {
+                        start: today,
+                        end: selectedDate
+                    });
+                }
+            }
+        })
+        .catch(error => console.error('Chyba při ukládání:', error));
+    });
+}

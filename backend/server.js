@@ -16,7 +16,8 @@ const pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
     password: '',
-    database: 'kalendar'
+    database: 'kalendar',
+    dateStrings: true
 });
 
 // Nastavení odesílání e-mailů pomocí Nodemailer
@@ -167,6 +168,39 @@ app.get('/api/reservations/unread-count', async (req, res) => {
         res.json({ unreadCount: rows[0].count });
     } catch (err) {
         console.error("Chyba při zjišťování počtu nepřečtených zpráv:", err);
+        res.status(500).json({ error: "Chyba serveru" });
+    }
+});
+
+
+// 1. Získání uloženého nastavení z databáze
+app.get('/api/setting', async (req, res) => {
+    try {
+        const [rows] = await pool.query("SELECT calendar_end_time FROM setting LIMIT 1");
+        res.json({ 
+            success: true, 
+            limitDate: rows[0] && rows[0].calendar_end_time ? rows[0].calendar_end_time : null 
+        });
+    } catch (err) {
+        console.error("Chyba při načítání nastavení:", err);
+        res.status(500).json({ error: "Chyba serveru" });
+    }
+});
+
+// 2. Uložení / aktualizace limitního data v databázi
+app.post('/api/setting', async (req, res) => {
+    try {
+        const { limitDate } = req.body;
+
+        // Uložíme do tabulky (pokud záznam s id=1 neexistuje, vytvoří se, jinak se aktualizuje)
+        await pool.query(
+            "INSERT INTO setting (id, calendar_end_time) VALUES (1, ?) ON DUPLICATE KEY UPDATE calendar_end_time = ?",
+            [limitDate, limitDate]
+        );
+
+        res.json({ success: true, message: "Nastavení uloženo do databáze!" });
+    } catch (err) {
+        console.error("Chyba při ukládání nastavení:", err);
         res.status(500).json({ error: "Chyba serveru" });
     }
 });
