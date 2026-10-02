@@ -11,16 +11,28 @@ const calendarEl = document.getElementById('calendar');
 
 const formSubmitButton = document.getElementById("formSubmitButton");
 
-document.addEventListener('DOMContentLoaded', function () {
+let savedLimitDate = null;
+
+document.addEventListener('DOMContentLoaded', async function () {
+    // načtení limitního data z databáze - pouze aktuální rozpis
+    await fetch('http://localhost:3000/api/setting')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.limitDate) {
+                // Formát datumu z databáze ořízneme na YYYY-MM-DD, aby ho input type="date" akceptoval
+                savedLimitDate = data.limitDate.split('T')[0];
+            }
+        })
+    .catch(error => console.error('Chyba při načítání nastavení:', error));
+
     // kalendář
     const calendar = new FullCalendar.Calendar(calendarEl, {
         locale: 'cs',
         initialView: 'timeGridWeek',
 
-        // validRange: {
-        //     start: '2026-09-01',
-        //     end: '2026-10-20'
-        // },
+        validRange: {
+            end: savedLimitDate ? savedLimitDate : undefined
+        },
 
         dayHeaderDidMount: function(info) {
             if (info.view.type === "dayGridMonth") return;
@@ -64,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
         eventClassNames: function(arg) {
             const type = arg.event.extendedProps.type;
             const booked = arg.event.extendedProps.booked;
+            console.log(booked);
 
             if(type === 'rent') {
                 if(!booked) {

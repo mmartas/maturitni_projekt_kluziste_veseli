@@ -202,7 +202,7 @@ app.get('/api/reservations/unread-count', async (req, res) => {
 });
 
 
-// 1. Získání uloženého nastavení z databáze
+// 1. Získání uloženého nastavení z databáze - konec aktuálního rozpisu
 app.get('/api/setting', async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT calendar_end_time FROM setting LIMIT 1");
@@ -255,7 +255,7 @@ app.put('/api/events/:id', async (req, res) => {
     }
 });
 
-// Smazání události (DELETE)
+// 1. Smazání CELÉHO eventu (smaže event a díky cascade i jeho rezervaci)
 app.delete('/api/events/:id', async (req, res) => {
     try {
         const eventId = req.params.id;
@@ -263,44 +263,21 @@ app.delete('/api/events/:id', async (req, res) => {
         await updateRentCounts();
         res.json({ success: true, message: "Událost byla smazána" });
     } catch (err) {
-        console.error("Chyba při mazání:", err);
+        console.error("Chyba při mazání události:", err);
         res.status(500).json({ error: "Chyba serveru" });
     }
 });
 
-// Zrušení rezervace adminem (smaže rezervaci z reservations, čímž se event v kalendáři uvolní)
-app.delete('/api/reservations/:id', async (req, res) => {
-    try {
-        const reservationId = req.params.id;
-
-        // 1. Smažeme rezervaci podle jejího ID
-        await pool.query("DELETE FROM reservations WHERE id = ?", [reservationId]);
-
-        // 2. Aktualizujeme statistiky v tabulce setting
-        await updateRentCounts();
-
-        res.json({ success: true, message: "Rezervace byla zrušena a blok je opět volný." });
-    } catch (err) {
-        console.error("Chyba při rušení rezervace:", err);
-        res.status(500).json({ error: "Chyba serveru při rušení rezervace" });
-    }
-});
-
-
-// Zrušení rezervace podle ID eventu (smaže pouze záznam v reservations, event zůstane)
+// 2. Zrušení POUZE rezervace (event v events zůstane a uvolní se)
 app.delete('/api/reservations/by-event/:eventId', async (req, res) => {
     try {
         const eventId = req.params.eventId;
-        
-        // Smažeme záznam POUZE z tabulky reservations
+        // Smažeme záznam pouze z reservations, tabulku events vůbec neřešíme!
         await pool.query("DELETE FROM reservations WHERE event_id = ?", [eventId]);
-
-        // Aktualizujeme statistiky v tabulce setting
         await updateRentCounts();
-
-        res.json({ success: true, message: "Rezervace byla zrušena a blok je opět volný." });
+        res.json({ success: true, message: "Rezervace byla zrušena, blok je opět volný." });
     } catch (err) {
-        console.error("Chyba při rušení rezervace k eventu:", err);
-        res.status(500).json({ error: "Chyba serveru při rušení rezervace" });
+        console.error("Chyba při rušení rezervace:", err);
+        res.status(500).json({ error: "Chyba serveru" });
     }
 });

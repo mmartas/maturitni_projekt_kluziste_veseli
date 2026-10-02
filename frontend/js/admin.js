@@ -82,7 +82,6 @@ navItems.forEach(item => {
                     height: '100%',
 
                     validRange: {
-                        start: today,
                         end: savedLimitDate ? savedLimitDate : undefined // Pokud je z DB načtené datum, použije se
                     },
 
@@ -171,7 +170,11 @@ navItems.forEach(item => {
                         const booked = arg.event.extendedProps.booked;
 
                         if(type === 'rent') {
-                            return ['event-rent'];
+                            if(!booked) {
+                                return ['event-rent'];
+                            } else {
+                                return ['event-rent-booked'];
+                            }
                         } else if (type === 'public') {
                             return ['event-public'];
                         } else if (type === 'booked') {
@@ -392,17 +395,60 @@ document.getElementById("insertEventsForm").addEventListener("submit", function(
     .catch(error => console.error('Chyba:', error));
 });
 
-// mazání eventů z záložce událostí - TLAČÍTKO DELETE
-deleteBtn.addEventListener("click", function() {
-   fetch(`http://localhost:3000/api/events/${currentEditingId}`, {
-        method: 'DELETE'
-    })
-    .then(response => response.json())
-    .then(res => {
-        if (res.success) {
-            calendar.refetchEvents();
-            resetFormMode();
+// // mazání eventů z záložce událostí - TLAČÍTKO DELETE
+// deleteBtn.addEventListener("click", function() {
+//    fetch(`http://localhost:3000/api/events/${currentEditingId}`, {
+//         method: 'DELETE'
+//     })
+//     .then(response => response.json())
+//     .then(res => {
+//         if (res.success) {
+//             calendar.refetchEvents();
+//             resetFormMode();
+//         }
+//     })
+//     .catch(error => console.error('Chyba při mazání:', error));
+// });
+
+// Obsluha tlačítka pro smazání / zrušení rezervace ve formuláři
+document.getElementById("deleteBtn").addEventListener("click", function() {
+    if (!currentEditingId) return;
+
+    // Zjistíme aktuální stav přímo z kalendáře
+    const event = calendar.getEventById(currentEditingId);
+    const isBooked = event.extendedProps.booked;
+
+    if (isBooked) {
+        // SCÉNÁŘ A: Jde o rezervaci -> mažeme POUZE rezervaci v tabulce reservations, event v events zůstane!
+        if (confirm("Opravdu chceš zrušit tuto rezervaci? Blok v kalendáři zůstane a vrátí se jako volný pronájem.")) {
+            fetch(`http://localhost:3000/api/reservations/by-event/${currentEditingId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(res => {
+                if (res.success) {
+                    calendar.refetchEvents();
+                    resetFormMode();
+                } else {
+                    alert("Nepodařilo se zrušit rezervaci.");
+                }
+            })
+            .catch(error => console.error('Chyba při rušení rezervace:', error));
         }
-    })
-    .catch(error => console.error('Chyba při mazání:', error));
+    } else {
+        // SCÉNÁŘ B: Jde o obyčejný volný event -> mažeme celou událost z tabulky events!
+        if (confirm("Opravdu chceš tuto událost smazat?")) {
+            fetch(`http://localhost:3000/api/events/${currentEditingId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(res => {
+                if (res.success) {
+                    calendar.refetchEvents();
+                    resetFormMode();
+                }
+            })
+            .catch(error => console.error('Chyba při mazání události:', error));
+        }
+    }
 });
