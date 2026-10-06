@@ -84,7 +84,10 @@ app.get('/api/events', async (req, res) => {
         const query = `
             SELECT e.id, e.title, e.start, e.end, e.type, 
             IF(r.id IS NOT NULL, 1, 0) AS booked,
-            r.surname AS client_surname
+            r.name AS client_name,
+            r.surname AS client_surname,
+            r.phone AS client_phone,
+            r.email AS client_email
             FROM events e
             LEFT JOIN reservations r ON e.id = r.event_id
         `;
@@ -99,7 +102,10 @@ app.get('/api/events', async (req, res) => {
             extendedProps: {
                 type: row.type,
                 booked: row.booked === 1, // True/False pro snadné rozhodování na frontendu
-                client_surname: row.client_surname
+                client_name: row.client_name,
+                client_surname: row.client_surname,
+                client_phone: row.client_phone,
+                client_email: row.client_email
             }
         }));
 
@@ -235,20 +241,41 @@ app.post('/api/setting', async (req, res) => {
 });
 
 
+
 // Úprava existující události (PUT)
 app.put('/api/events/:id', async (req, res) => {
     try {
         const eventId = req.params.id;
-        const { title, start, end, type } = req.body;
+        const { title, start, end, type, name, surname, phone, email, date } = req.body;
 
+        // 1. Aktualizujeme základní událost v tabulce events
         await pool.query(
             "UPDATE events SET title = ?, start = ?, end = ?, type = ? WHERE id = ?",
             [title, start, end, type, eventId]
         );
 
+        // 2. Zjistíme, jestli k tomuto eventu už existuje rezervace v tabulce reservations
+        const [existingRes] = await pool.query("SELECT id FROM reservations WHERE event_id = ?", [eventId]);
+
+        if (existingRes.length > 0) {
+            // Pokud rezervace existuje, vždy aktualizujeme její klientské údaje (příjmení, jméno atd.)
+            await pool.query(
+                "UPDATE reservations SET name = ?, surname = ?, email = ?, phone = ?, date = ? WHERE event_id = ?",
+                [name || '', surname || '', email || '', phone || '', date || start, eventId]
+            );
+        } else {
+            // Pokud rezervace neexistuje, ale admin zadal příjmení nebo nastavil typ booked, vytvoříme ji
+            if (type === 'booked' || (surname && surname.trim() !== '')) {
+                await pool.query(
+                    "INSERT INTO reservations (event_id, name, surname, email, phone, date) VALUES (?, ?, ?, ?, ?, ?)",
+                    [eventId, name || '', surname || '', email || '', phone || '', date || start]
+                );
+            }
+        }
+
         await updateRentCounts();
 
-        res.json({ success: true, message: "Událost byla aktualizována" });
+        res.json({ success: true, message: "Událost a rezervace byla aktualizována" });
     } catch (err) {
         console.error("Chyba při aktualizaci události:", err);
         res.status(500).json({ error: "Chyba serveru" });

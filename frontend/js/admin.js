@@ -126,26 +126,33 @@ navItems.forEach(item => {
                         currentEditingId = info.event.id;
                         
                         // Spolehlivá detekce: Zjistíme, zda má event rezervaci (podle booked příznaku nebo přítomnosti příjmení klienta)
-                        const bookedProp = info.event.extendedProps.booked;
-                        const clientSurname = info.event.extendedProps.client_surname;
-                        
-                        currentEventIsBooked = (bookedProp === true || bookedProp === 1 || (clientSurname && clientSurname.trim() !== ""));
+                        const props = info.event.extendedProps;
+                        currentEventIsBooked = (props.booked === true || props.booked === 1);
 
-                        const eventType = info.event.extendedProps.type;
-                        const fullTitle = info.event.title;
+                        const eventType = props.type;
 
-                        const eventTitleSelect = document.getElementById("eventTitle");
-                        eventTitleSelect.value = eventType;
+                        document.getElementById("eventTitle").value = eventType;
 
                         const clientNameInput = document.getElementById("adminBookedClientName");
+                        const clientSurnameInput = document.getElementById("adminBookedClientSurname");
+                        const clientTelInput = document.getElementById("adminBookedClientTel");
+                        const clientEmailInput = document.getElementById("adminBookedClientEmail");
 
                         if (currentEventIsBooked) {
+                            // Zobrazíme políčka klienta
                             clientInfo.forEach(element => element.classList.add("active"));
-                            const match = fullTitle.match(/\(([^)]+)\)/);
-                            clientNameInput.value = match ? match[1] : (clientSurname || "");
+
+                            // Vyplníme data, která přišla z databáze přes extendedProps
+                            clientNameInput.value = props.client_name || "";
+                            clientSurnameInput.value = props.client_surname || "";
+                            clientTelInput.value = props.client_phone || "";
+                            clientEmailInput.value = props.client_email || "";
                         } else {
                             clientInfo.forEach(element => element.classList.remove("active"));
                             clientNameInput.value = "";
+                            clientSurnameInput.value = "";
+                            clientTelInput.value = "";
+                            clientEmailInput.value = "";
                         }
 
                         document.getElementById("eventStart").value = info.event.startStr.slice(0, 16);
@@ -394,21 +401,6 @@ document.getElementById("insertEventsForm").addEventListener("submit", function(
     })
     .catch(error => console.error('Chyba:', error));
 });
-
-// // mazání eventů z záložce událostí - TLAČÍTKO DELETE
-// deleteBtn.addEventListener("click", function() {
-//    fetch(`http://localhost:3000/api/events/${currentEditingId}`, {
-//         method: 'DELETE'
-//     })
-//     .then(response => response.json())
-//     .then(res => {
-//         if (res.success) {
-//             calendar.refetchEvents();
-//             resetFormMode();
-//         }
-//     })
-//     .catch(error => console.error('Chyba při mazání:', error));
-// });
 
 // Obsluha tlačítka pro smazání / zrušení rezervace ve formuláři
 document.getElementById("deleteBtn").addEventListener("click", function() {
