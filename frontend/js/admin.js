@@ -30,6 +30,10 @@ const bookedClientName = document.getElementById("bookedClientName");
 const clientInfo = document.querySelectorAll(".clientInfo");
 let adminBookedClientName = document.getElementById("adminBookedClientName");
 
+const countAllRentDates = document.getElementById("countAllRentDates");
+const countFreeRentDates = document.getElementById("countFreeRentDates");
+const countRentedDates = document.getElementById("countRentedDates");
+
 let changeEventTitle = document.getElementById("eventTitle");
 
 let savedLimitDate = null; // Globální proměnná pro uložení limitu
@@ -358,12 +362,15 @@ document.getElementById("insertEventsForm").addEventListener("submit", function(
     else if (selectedType === "school") eventTitleText = "Školní akce";
     else if (selectedType === "rent") eventTitleText = "Možnost pronájmu";
     else if (selectedType === "maintenance") eventTitleText = "Údržba ledu";
-    else if (selectedType === "booked") eventTitleText = "Obsazeno";
+    else if (selectedType === "booked") {
+        eventTitleText = "Možnost pronájmu";
+        eventType = "rent";
+    }
 
     let finalTitle = eventTitleText;
-    if (selectedType === "booked" && clientNameVal.trim() !== "") {
-        finalTitle = `${eventTitleText} (${clientNameVal})`;
-    }
+    // if (selectedType === "booked" && clientNameVal.trim() !== "") {
+    //     finalTitle = `${eventTitleText} (${clientNameVal})`;
+    // }
 
     const startVal = document.getElementById("eventStart").value;
     const endVal = document.getElementById("eventEnd").value;
@@ -443,4 +450,25 @@ document.getElementById("deleteBtn").addEventListener("click", function() {
             .catch(error => console.error('Chyba při mazání události:', error));
         }
     }
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+    fetch('http://localhost:3000/api/setting')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 1. Nastavení limitního data (původní logika)
+                if (data.limitDate) {
+                    savedLimitDate = data.limitDate.split('T')[0];
+                    limitDateInput.value = savedLimitDate;
+                    dashboardLimitDate.innerHTML = savedLimitDate;
+                }
+
+                // 2. Vypsání statistik do tvých elementů
+                if (countAllRentDates) countAllRentDates.textContent = data.allCount;
+                if (countFreeRentDates) countFreeRentDates.textContent = data.freeCount;
+                if (countRentedDates) countRentedDates.textContent = data.bookedCount;
+            }
+        })
+    .catch(error => console.error('Chyba při načítání nastavení:', error));
 });

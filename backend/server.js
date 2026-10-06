@@ -53,25 +53,28 @@ function formatEmailDate(dateString) {
 // Pomocná funkce pro přepočet a uložení všech statistik pronájmů
 async function updateRentCounts() {
     try {
-        // 1. Spočítáme volné pronájmy (type = 'rent' a booked = 0)
-        const [freeRows] = await pool.query("SELECT COUNT(*) AS total FROM events WHERE type = 'rent' ");
-        const freeCount = freeRows[0].total;
-
-        // 2. Spočítáme obsazené pronájmy (type = 'rent' a booked = 1)
-        const [bookedRows] = await pool.query("SELECT COUNT(*) AS total FROM events WHERE type = 'booked' ");
-        const bookedCount = bookedRows[0].total;
-
-        // 3. Spočítáme celkový počet pronájmů (všechny s type = 'rent')
-        const [allRows] = await pool.query("SELECT COUNT(*) AS total FROM events WHERE type = 'rent' OR type = 'booked' ");
+        // 1. Celkový počet pronájmů (všechny eventy s type = 'rent')
+        const [allRows] = await pool.query("SELECT COUNT(*) AS total FROM events WHERE type = 'rent'");
         const allCount = allRows[0].total;
 
-        // 4. Uložíme všechny tři hodnoty najednou do tabulky setting
+        // 2. Obsazené pronájmy (type = 'rent' a zároveň k nim existuje rezervace)
+        const [bookedRows] = await pool.query(`
+            SELECT COUNT(*) AS total FROM events e
+            JOIN reservations r ON e.id = r.event_id
+            WHERE e.type = 'rent'
+        `);
+        const bookedCount = bookedRows[0].total;
+
+        // 3. Volné pronájmy = Celkem mínus Obsazené
+        const freeCount = allCount - bookedCount;
+
+        // 4. Uložíme všechny tři hodnoty do tabulky setting
         await pool.query(
             "UPDATE setting SET count_free_rent = ?, count_booked_rent = ?, count_all_rent = ? WHERE id = 1",
             [freeCount, bookedCount, allCount]
         );
         
-        console.log(`Statistiky pronájmů aktualizovány -> Volné: ${freeCount}, Obsazené: ${bookedCount}, Celkem: ${allCount}`);
+        console.log(`Statistiky pronájmů -> Volné: ${freeCount}, Obsazené: ${bookedCount}, Celkem: ${allCount}`);
     } catch (err) {
         console.error("Chyba při aktualizaci statistik pronájmů:", err);
     }
@@ -116,23 +119,34 @@ app.get('/api/events', async (req, res) => {
     }
 });
 
+// 1. Vytvoření nové události a rezervace (POST)
 app.post('/api/events', async (req, res) => {
     try {
-        const { title, start, end, type } = req.body;
+        const { title, start, end, type, name, surname, phone, email, date } = req.body;
 
-        await pool.query(
+        // 1. Vložíme událost do tabulky events a získáme její ID
+        const [result] = await pool.query(
             "INSERT INTO events (title, start, end, type) VALUES (?, ?, ?, ?)",
             [title, start, end, type]
         );
+        const eventId = result.insertId;
+
+        // 2. Pokud je vyplněné příjmení, automaticky založíme rezervaci v tabulce reservations!
+        if (surname && surname.trim() !== '') {
+            await pool.query(
+                "INSERT INTO reservations (event_id, name, surname, email, phone, date) VALUES (?, ?, ?, ?, ?, ?)",
+                [eventId, name || '', surname, email || '', phone || '', date || start]
+            );
+        }
 
         await updateRentCounts();
 
-        res.json({success: true, message: "Událost byla vložena!"});
+        res.json({ success: true, message: "Událost a rezervace byla úspěšně vložena!" });
     } catch (err) {
         console.error("Chyba při vkládání událostí: ", err);
         res.status(500).json({ error: "Chyba serveru při ukládání" });
     }
-})
+});
 
 // 2. API Endpoint pro FullCalendar (ukládá nové rezervace do databáze a odesílá e-maily)
 app.post('/api/reservations', async (req, res) => {
@@ -211,10 +225,14 @@ app.get('/api/reservations/unread-count', async (req, res) => {
 // 1. Získání uloženého nastavení z databáze - konec aktuálního rozpisu
 app.get('/api/setting', async (req, res) => {
     try {
-        const [rows] = await pool.query("SELECT calendar_end_time FROM setting LIMIT 1");
+        const [rows] = await pool.query("SELECT calendar_end_time, count_free_rent, count_booked_rent, count_all_rent FROM setting LIMIT 1");
+        
         res.json({ 
             success: true, 
-            limitDate: rows[0] && rows[0].calendar_end_time ? rows[0].calendar_end_time : null 
+            limitDate: rows[0] && rows[0].calendar_end_time ? rows[0].calendar_end_time : null,
+            freeCount: rows[0] ? rows[0].count_free_rent : 0,
+            bookedCount: rows[0] ? rows[0].count_booked_rent : 0,
+            allCount: rows[0] ? rows[0].count_all_rent : 0
         });
     } catch (err) {
         console.error("Chyba při načítání nastavení:", err);
