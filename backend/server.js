@@ -33,6 +33,7 @@ const transporter = nodemailer.createTransport({
 app.listen(PORT, () => {
     console.log(`Backend server úspěšně běží na adrese: http://localhost:${PORT}`);
 });
+updateRentCounts();
 
 // formátování termínu z ISO formátu na formát datum-čas
 function formatEmailDate(dateString) {
@@ -54,14 +55,14 @@ function formatEmailDate(dateString) {
 async function updateRentCounts() {
     try {
         // 1. Celkový počet pronájmů (všechny eventy s type = 'rent')
-        const [allRows] = await pool.query("SELECT COUNT(*) AS total FROM events WHERE type = 'rent'");
+        const [allRows] = await pool.query("SELECT COUNT(*) AS total FROM events WHERE type = 'rent' AND start >= CURDATE()");
         const allCount = allRows[0].total;
 
         // 2. Obsazené pronájmy (type = 'rent' a zároveň k nim existuje rezervace)
         const [bookedRows] = await pool.query(`
             SELECT COUNT(*) AS total FROM events e
             JOIN reservations r ON e.id = r.event_id
-            WHERE e.type = 'rent'
+            WHERE e.type = 'rent' AND e.start >= CURDATE()
         `);
         const bookedCount = bookedRows[0].total;
 

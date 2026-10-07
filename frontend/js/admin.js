@@ -296,7 +296,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 savedLimitDate = data.limitDate.split('T')[0];
                 
                 limitDateInput.value = savedLimitDate; // Datum svítí v inputu
-                dashboardLimitDate.innerHTML = savedLimitDate;
+                
+                const [year, month, day] = savedLimitDate.split('-');
+                const formattedDate = `${day}.${month}.${year}`;
+                
+                dashboardLimitDate.innerHTML = formattedDate;
             }
         })
     .catch(error => console.error('Chyba při načítání nastavení:', error));
@@ -320,7 +324,6 @@ limitDateInput.addEventListener("change", function() {
     .then(res => {
         if (res.success) {
             calendar.setOption('validRange', {
-                start: today,
                 end: selectedDate
             });
         }
@@ -461,7 +464,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (data.limitDate) {
                     savedLimitDate = data.limitDate.split('T')[0];
                     limitDateInput.value = savedLimitDate;
-                    dashboardLimitDate.innerHTML = savedLimitDate;
+
+                    const [year, month, day] = savedLimitDate.split('-');
+                    const formattedDate = `${day}.${month}.${year}`;
+                
+                    dashboardLimitDate.innerHTML = formattedDate;
                 }
 
                 // 2. Vypsání statistik do tvých elementů

@@ -72,6 +72,16 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         events: "http://localhost:3000/api/events",
 
+        eventDidMount: function(info) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Pokud je událost v minulosti, změníme kurzor na šipku (žádná ručička)
+            if (info.event.start < today) {
+                info.el.classList.add('past-event');
+            }
+        },
+
         // cursor pointer na eventy pro pronájem a obarvení eventů podle typu
         eventClassNames: function(arg) {
             const type = arg.event.extendedProps.type;
@@ -98,6 +108,13 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         // otevření objednacího modalu při kliknutí na volný pronájem
         eventClick: function(info){
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Pokud je událost v minulosti, ignorujeme kliknutí (nic se neotevře)
+            if (info.event.start < today) {
+                return; 
+            }
             const type = info.event.extendedProps.type;
             const booked = info.event.extendedProps.booked;
 

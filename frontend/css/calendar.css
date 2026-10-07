@@ -109,6 +109,9 @@
 .event-school {
     background-color: lightblue !important;
 }
+.past-event, .past-event * {
+    cursor: default !important;
+}
 /* víkend */
 .fc-day-sat, 
 .fc-day-sun {
