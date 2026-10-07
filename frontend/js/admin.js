@@ -15,7 +15,7 @@ const allContents = document.querySelectorAll("#adminContent .content");
 
 const adminEventsForm = document.getElementById("insertEventsForm");
 
-const inboxRefreshArrow = document.getElementById("inboxRefreshArrow");
+const adminRefreshArrow = document.getElementById("adminRefreshArrow");
 
 const today = new Date().toISOString().split('T')[0];
 
@@ -49,9 +49,9 @@ menuArrow.addEventListener("click", () => {
 
 // logika animovaného otáčení refresh šipky v content části admin panelu
 let currentRotation = 0;
-inboxRefreshArrow.addEventListener("click", () => {
+adminRefreshArrow.addEventListener("click", () => {
     currentRotation -= 360;
-    inboxRefreshArrow.style.transform = `rotate(${currentRotation}deg)`;
+    adminRefreshArrow.style.transform = `rotate(${currentRotation}deg)`;
 })
 
 let currentEditingId = null;

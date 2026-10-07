@@ -46,12 +46,28 @@ main {
     justify-content: space-between;
 }
 
-#adminMenuArrow i{
-    font-size: 1rem;
-    transition: all 0.3s ease-in-out;
-}
 #adminMenuArrow i.active {
     transform: rotate(180deg);
+}
+
+#adminRefreshArrow {
+    transition: transform 0.3s ease-in-out;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--white-color);
+    flex-shrink: 0;
+}
+
+.icon_arrow_menu_refresh {
+    width: 34px;
+    height: 34px;
+    border-radius: 100%;
+    justify-content: center !important;
+}
+.icon_arrow_menu_refresh i {
+    font-size: 1rem;
+    transition: all 0.3s ease-in-out;
 }
 
 #adminMenu ul li:last-child {
@@ -120,6 +136,12 @@ main {
     gap: 1rem;
 }
 
+.segment {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
 
 
 
@@ -182,15 +204,6 @@ main {
     gap: 1rem;
 }
 
-#inboxRefreshArrow {
-    transition: transform 0.3s ease-in-out;
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: var(--white-color);
-    flex-shrink: 0;
-}
-
 #unreadMessagesIcon {
     font-size: 0.7rem;
     align-items: center;
@@ -207,22 +220,7 @@ main {
 }
 /* END - INBOX CONTENT */
 
-
-
-.icon_arrow_menu_refresh {
-    width: 34px;
-    height: 34px;
-    border-radius: 100%;
-    justify-content: center !important;
-}
-
-.segment {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
+/* START - EVENTS CONTENT*/
 .fc .fc-view-harness-active > .fc-view {
     padding: 1rem;
 }
@@ -270,3 +268,4 @@ main {
 .form_buttons button {
     width: 100%;
 }
+/* END - EVENTS CONTENT */
