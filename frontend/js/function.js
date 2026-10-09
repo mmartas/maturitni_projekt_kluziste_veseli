@@ -164,7 +164,7 @@ function loadMessages() {
                     <span class="message_subject">Potvrzení rezervace</span>
                     <span class="client_email">${msg.email}</span>
                     <span class="message_body">${msg.note || 'Bez poznámky'}</span>
-                    <a href="#"><i class="fa-solid fa-trash-can"></i></a>
+                    <a class="trashCan" href="#"><i class="fa-solid fa-trash-can"></i></a>
                 </div>
                 <div class="message_details">
                     <p><strong>Jméno a příjmení:</strong> ${msg.name} ${msg.surname}</p>
@@ -174,6 +174,35 @@ function loadMessages() {
                     <p><strong>Poznámka:</strong> ${msg.note || 'Žádná poznámka'}</p>
                 </div>
             `;
+
+            const trashBtn = messageDiv.querySelector('.trashCan');
+            trashBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation(); // Zabrání rozbalení zprávy
+
+                // Odešleme požadavek na server, že chceme zprávu skrýt
+                fetch(`http://localhost:3000/api/reservations/${msg.id}/hide`, {
+                    method: 'PATCH'
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        // Zpráva vizuálně zmizí z inboxu
+                        messageDiv.remove();
+                        
+                        // Aktualizace počtu nepřečtených zpráv
+                        if (typeof updateUnreadBadge === 'function') {
+                            updateUnreadBadge();
+                        }
+
+                        // Pokud v inboxu nezbyla žádná zpráva, vypíšeme text
+                        if (container.children.length === 0) {
+                            container.innerHTML = '<p>Žádné zprávy v inboxu.</p>';
+                        }
+                    }
+                })
+                .catch(err => console.error("Chyba při skrývání zprávy:", err));
+            });
 
             messageDiv.addEventListener('click', function(e) {
                 this.classList.toggle('expanded');

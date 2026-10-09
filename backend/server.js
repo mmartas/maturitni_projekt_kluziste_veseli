@@ -34,6 +34,22 @@ app.listen(PORT, () => {
     console.log(`Backend server úspěšně běží na adrese: http://localhost:${PORT}`);
 });
 
+// formátování datumu z ISO formátu na formát datum-čas
+function formatEmailDate(dateString) {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    
+    const hours = d.getHours().toString().padStart(2, "0");
+    const minutes = d.getMinutes().toString().padStart(2, "0");
+    
+    const dateText = 
+        d.getDate() + "." + 
+        (d.getMonth() + 1) + "." + 
+        d.getFullYear();
+
+    return `${dateText} ${hours}:${minutes}`;
+}
+
 // funkce pro přepočet a uložení všech statistik pronájmů
 async function updateRentCounts() {
     try {
@@ -227,11 +243,23 @@ app.post('/api/reservations', async (req, res) => {
 // 6. endpoint pro stažení rezervací do admin panelu do inboxu
 app.get('/api/reservations', async (req, res) => {
     try {
-        const [rows] = await pool.query("SELECT * FROM reservations ORDER BY id DESC");
+        const [rows] = await pool.query("SELECT * FROM reservations WHERE deletedMessage = 0 ORDER BY date DESC");
         res.json(rows);
     } catch (err) {
         console.error("Chyba při načítání rezervací:", err);
         res.status(500).json({ error: "Chyba serveru při načítání" });
+    }
+});
+
+// 2. Endpoint pro skrytí zprávy z inboxu (rezervace v DB zůstane)
+app.patch('/api/reservations/:id/hide', async (req, res) => {
+    try {
+        const reservationId = req.params.id;
+        await pool.query("UPDATE reservations SET deletedMessage = 1 WHERE id = ?", [reservationId]);
+        res.json({ success: true, message: "Zpráva byla skryta z inboxu." });
+    } catch (err) {
+        console.error("Chyba při skrývání zprávy:", err);
+        res.status(500).json({ error: "Chyba serveru" });
     }
 });
 
@@ -305,6 +333,31 @@ app.post('/api/setting', async (req, res) => {
         res.json({ success: true, message: "Nastavení uloženo do databáze!" });
     } catch (err) {
         console.error("Chyba při ukládání nastavení:", err);
+        res.status(500).json({ error: "Chyba serveru" });
+    }
+});
+
+// Endpoint který spustí přepočet statistik pronájmů
+app.post('/api/update-counts', async (req, res) => {
+    try {
+        await updateRentCounts(); // Spustí tvou funkci v server.js
+        
+        // Načteme aktuální hodnoty z tabulky setting, abychom je poslali do frontendu
+        const [rows] = await pool.query("SELECT * FROM setting WHERE id = 1"); // případně LIMIT 1 podle toho, jak máš ID
+        
+        if (rows.length > 0) {
+            res.json({ 
+                success: true, 
+                allCount: rows[0].count_all_rent, 
+                freeCount: rows[0].count_free_rent, 
+                bookedCount: rows[0].count_booked_rent,
+                limitDate: rows[0].calendar_end_time
+            });
+        } else {
+            res.json({ success: true });
+        }
+    } catch (err) {
+        console.error("Chyba při aktualizaci statistik:", err);
         res.status(500).json({ error: "Chyba serveru" });
     }
 });

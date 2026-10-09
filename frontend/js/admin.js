@@ -45,17 +45,189 @@ let currentEditingId = null;
 let currentEventIsBooked = false;
 
 // vysunutí meníčka v levém admin panelu po kliknutí na šipku + (otočení šipky animací)
-menuArrow.addEventListener("click", () => {
+menuArrow.addEventListener("click", (e) => {
+    e.preventDefault();
     menuArrowIn.classList.toggle("active");
     menuWrapper.classList.toggle("active");
 })
 
 // logika animovaného otáčení refresh šipky v content části admin panelu
 let currentRotation = 0;
-adminRefreshArrow.addEventListener("click", () => {
+adminRefreshArrow.addEventListener("click", (e) => {
+    e.preventDefault();
+    
     currentRotation -= 360;
     adminRefreshArrow.style.transform = `rotate(${currentRotation}deg)`;
+    setTimeout(() => {
+        window.location.reload();
+    }, 200);
 })
+
+function initCalendar() {
+    if (calendarInitialized) {
+        if (calendar) {
+            setTimeout(() => {
+                calendar.render();
+                calendar.updateSize();
+            }, 50);
+        }
+        return;
+    }
+
+    const calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'cs',
+        initialView: 'timeGridWeek',
+        height: '100%',
+
+        validRange: {
+            end: savedLimitDate ? savedLimitDate : undefined
+        },
+
+        dayHeaderDidMount: function(info) {
+            if (info.view.type === "dayGridMonth") return;
+            info.el.style.cursor = "pointer";
+            info.el.addEventListener("click", () => {
+                calendar.changeView('timeGridDay', info.date);
+            });
+        },
+
+        dayMaxEvents: 3,
+
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'timeGridDay,timeGridWeek,dayGridMonth'
+        },
+
+        buttonText: {
+            today: "Dnes",
+            week: "Týden",
+            day: "Den",
+            month: "Měsíc"
+        },
+        
+        expandRows: false,
+        firstDay: 1,
+
+        slotMinTime: '06:00:00',
+        slotMaxTime: '23:00:00',
+
+        slotDuration: '01:00:00',
+        slotLabelInterval: '01:00',
+
+        allDaySlot: false,
+        moreLinkText: 'další',
+
+        events: "http://localhost:3000/api/events",
+
+        eventClick: function(info) {
+            currentEditingId = info.event.id;
+            
+            const props = info.event.extendedProps;
+            currentEventIsBooked = (props.booked === true || props.booked === 1);
+
+            const eventType = props.type;
+
+            document.getElementById("eventTitle").value = eventType;
+
+            const clientNameInput = adminBookedClientName;
+            const clientSurnameInput = document.getElementById("adminBookedClientSurname");
+            const clientTelInput = document.getElementById("adminBookedClientTel");
+            const clientEmailInput = document.getElementById("adminBookedClientEmail");
+
+            if (currentEventIsBooked) {
+                clientInfo.forEach(element => element.classList.add("active"));
+                clientNameInput.value = props.client_name || "";
+                clientSurnameInput.value = props.client_surname || "";
+                clientTelInput.value = props.client_phone || "";
+                clientEmailInput.value = props.client_email || "";
+            } else {
+                clientInfo.forEach(element => element.classList.remove("active"));
+                clientNameInput.value = "";
+                clientSurnameInput.value = "";
+                clientTelInput.value = "";
+                clientEmailInput.value = "";
+            }
+
+            document.getElementById("eventStart").value = info.event.startStr.slice(0, 16);
+            document.getElementById("eventEnd").value = info.event.endStr ? info.event.endStr.slice(0, 16) : "";
+
+            document.getElementById("submitBtn").textContent = "Potvrdit změny";
+            
+            if (currentEventIsBooked) {
+                deleteBtn.textContent = "Zrušit rezervaci";
+            } else {
+                deleteBtn.textContent = "Odstranit událost";
+            }
+
+            deleteBtn.style.display = "inline-block";
+            document.getElementById("cancelBtn").style.display = "inline-block";
+        },
+
+        eventClassNames: function(arg) {
+            const type = arg.event.extendedProps.type;
+            const booked = arg.event.extendedProps.booked;
+
+            if(type === 'rent') {
+                if(!booked) return ['event-rent'];
+                else return ['event-rent-booked'];
+            } else if (type === 'public') return ['event-public'];
+            else if (type === 'booked') return ['event-booked'];
+            else if (type === 'maintenance') return ['event-maintenance'];
+            else if (type === 'school') return ['event-school'];
+            return [];
+        },
+
+        dayCellDidMount: function(info) {
+            if (info.view.type === "dayGridMonth") {
+                info.el.style.cursor = "pointer";
+            }
+        },
+
+        dateClick: function(info) {
+            if (info.view.type === "dayGridMonth") {
+                calendar.changeView('timeGridDay', info.date);
+            }
+        },
+
+        dayHeaderContent: function(arg) {
+            const date = arg.date;
+            const day = date.toLocaleDateString('cs-CZ', { weekday: 'short' });
+            const fullDate = date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
+            const dayDate = date.toLocaleDateString('cs-CZ', { day: 'numeric' });
+
+            if (arg.view.type === "dayGridMonth") {
+                return { html: `<span class="day-name">${day}</span>` };
+            }
+
+            if (arg.view.type === "timeGridWeek" && window.innerWidth <= 430) {
+                return {
+                    html: `
+                        <div class="day-header">
+                            <span class="day-name">${day}</span>
+                            <span class="day-date">${dayDate}</span>
+                        </div>
+                    `
+                };
+            }
+
+            return {
+                html: `
+                    <div class="day-header">
+                        <span class="day-name">${day}</span>
+                        <span class="day-date">${fullDate}</span>
+                    </div>
+                `
+            };
+        }
+    });
+
+    calendar.render();
+    calendarInitialized = true;
+}
 
 // pole, které propojuje ikonu, textový odkaz a obsah v celém admin panelu
 const navItems = [
@@ -65,191 +237,60 @@ const navItems = [
     { icon: inboxIcon, content: inboxContent }
 ];
 
+// Pomocná funkce pro přepnutí sekce a uložení do URL
+function showSection(item) {
+    allContents.forEach(content => content.classList.remove("active"));
+    navItems.forEach(nav => nav.icon.classList.remove("active"));
+
+    item.content.classList.add("active");
+    item.icon.classList.add("active");
+
+    // Pokud má content své ID, uložíme ho do URL jako hash (např. admin.html#inbox)
+    if (item.content.id) {
+        window.location.hash = item.content.id;
+    }
+
+    fetch('http://localhost:3000/api/update-counts', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(res => {
+        if (res.success) {
+            // Okamžitě aktualizujeme čísla v dashboardu (ve tvaru "volné / celkem")
+            if (countAllRentDates) countAllRentDates.textContent = res.allCount;
+            if (countFreeRentDates) countFreeRentDates.textContent = `${res.freeCount} / ${res.allCount}`;
+            if (countRentedDates) countRentedDates.textContent = `${res.bookedCount} / ${res.allCount}`;
+
+            // 2. Aktualizujeme limitní datum v dashboardu a v inputu
+            if (res.limitDate) {
+                savedLimitDate = res.limitDate.split('T')[0];
+                if (limitDateInput) limitDateInput.value = savedLimitDate;
+
+                // Formátování na DD.MM.YYYY
+                const [year, month, day] = savedLimitDate.split('-');
+                const formattedDate = `${day}.${month}.${year}`;
+                
+                if (dashboardLimitDate) {
+                    dashboardLimitDate.innerHTML = formattedDate;
+                }
+            }
+        }
+    })
+    .catch(err => console.error("Chyba při aktualizaci statistik:", err));
+
+    if (item.content === eventsContent) {
+        setTimeout(() => {
+            initCalendar();
+        }, 50);
+    }
+}
+
 navItems.forEach(item => {
     if (item.icon && item.content) {
         item.icon.addEventListener("click", (e) => {
             e.preventDefault();
 
-            allContents.forEach(content => content.classList.remove("active"));
-            navItems.forEach(nav => nav.icon.classList.remove("active"));
-
-            item.content.classList.add("active");
-            item.icon.classList.add("active");
-
-            if (item.content === eventsContent) {
-                const calendarEl = document.getElementById('calendar');
-
-                calendar = new FullCalendar.Calendar(calendarEl, {
-                    locale: 'cs',
-                    initialView: 'timeGridWeek',
-                    height: '100%',
-
-                    validRange: {
-                        end: savedLimitDate ? savedLimitDate : undefined // Pokud je z DB načtené datum, použije se
-                    },
-
-                    dayHeaderDidMount: function(info) {
-                        if (info.view.type === "dayGridMonth") return;
-                        info.el.style.cursor = "pointer";
-                        info.el.addEventListener("click", () => {
-                            calendar.changeView('timeGridDay', info.date);
-                        });
-                    },
-
-                    dayMaxEvents: 3,
-
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'timeGridDay,timeGridWeek,dayGridMonth'
-                    },
-
-                    buttonText: {
-                        today: "Dnes",
-                        week: "Týden",
-                        day: "Den",
-                        month: "Měsíc"
-                    },
-                    
-                    expandRows: false,
-                    firstDay: 1,
-
-                    slotMinTime: '06:00:00',
-                    slotMaxTime: '23:00:00',
-
-                    slotDuration: '01:00:00',
-                    slotLabelInterval: '01:00',
-
-                    allDaySlot: false,
-                    moreLinkText: 'další',
-
-                    events: "http://localhost:3000/api/events",
-
-                    eventClick: function(info) {
-                        currentEditingId = info.event.id;
-                        
-                        // Spolehlivá detekce: Zjistíme, zda má event rezervaci (podle booked příznaku nebo přítomnosti příjmení klienta)
-                        const props = info.event.extendedProps;
-                        currentEventIsBooked = (props.booked === true || props.booked === 1);
-
-                        const eventType = props.type;
-
-                        document.getElementById("eventTitle").value = eventType;
-
-                        const clientNameInput = adminBookedClientName;
-                        const clientSurnameInput = document.getElementById("adminBookedClientSurname");
-                        const clientTelInput = document.getElementById("adminBookedClientTel");
-                        const clientEmailInput = document.getElementById("adminBookedClientEmail");
-
-                        if (currentEventIsBooked) {
-                            // Zobrazíme políčka klienta
-                            clientInfo.forEach(element => element.classList.add("active"));
-
-                            // Vyplníme data, která přišla z databáze přes extendedProps
-                            clientNameInput.value = props.client_name || "";
-                            clientSurnameInput.value = props.client_surname || "";
-                            clientTelInput.value = props.client_phone || "";
-                            clientEmailInput.value = props.client_email || "";
-                        } else {
-                            clientInfo.forEach(element => element.classList.remove("active"));
-                            clientNameInput.value = "";
-                            clientSurnameInput.value = "";
-                            clientTelInput.value = "";
-                            clientEmailInput.value = "";
-                        }
-
-                        document.getElementById("eventStart").value = info.event.startStr.slice(0, 16);
-                        document.getElementById("eventEnd").value = info.event.endStr ? info.event.endStr.slice(0, 16) : "";
-
-                        document.getElementById("submitBtn").textContent = "Potvrdit změny";
-                        
-                        if (currentEventIsBooked) {
-                            deleteBtn.textContent = "Zrušit rezervaci"; // Jasně vidíme, že budeme rušit jen rezervaci
-                        } else {
-                            deleteBtn.textContent = "Odstranit událost"; // Budeme mazat celý event
-                        }
-
-                        deleteBtn.style.display = "inline-block";
-                        document.getElementById("cancelBtn").style.display = "inline-block";
-                    },
-
-                    // cursor pointer na eventy pro pronájem a obarvení eventů podle typu
-                    eventClassNames: function(arg) {
-                        const type = arg.event.extendedProps.type;
-                        const booked = arg.event.extendedProps.booked;
-
-                        if(type === 'rent') {
-                            if(!booked) {
-                                return ['event-rent'];
-                            } else {
-                                return ['event-rent-booked'];
-                            }
-                        } else if (type === 'public') {
-                            return ['event-public'];
-                        } else if (type === 'booked') {
-                            return ['event-booked'];
-                        } else if (type === 'maintenance') {
-                            return ['event-maintenance'];
-                        } else if (type === 'school') {
-                            return ['event-school'];
-                        }
-                        return [];
-                    },
-
-                    dayCellDidMount: function(info) {
-                        if (info.view.type === "dayGridMonth") {
-                            info.el.style.cursor = "pointer";
-                        }
-                    },
-
-                    dateClick: function(info) {
-                        if (info.view.type === "dayGridMonth") {
-                            calendar.changeView('timeGridDay', info.date);
-                        }
-                    },
-
-                    // nezalomení hlavičky "po 11.4." při responzivitě
-                    dayHeaderContent: function(arg) {
-                        const date = arg.date;
-                        const day = date.toLocaleDateString('cs-CZ', { weekday: 'short' });
-                        const fullDate = date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
-                        const dayDate = date.toLocaleDateString('cs-CZ', { day: 'numeric' });
-
-                        if (arg.view.type === "dayGridMonth") {
-                            return {
-                                html: `<span class="day-name">${day}</span>`
-                            };
-                        }
-
-                        if (arg.view.type === "timeGridWeek" && window.innerWidth <= 430) {
-                            return {
-                                html: `
-                                    <div class="day-header">
-                                        <span class="day-name">${day}</span>
-                                        <span class="day-date">${dayDate}</span>
-                                    </div>
-                                `
-                            };
-                        }
-
-                        return {
-                            html: `
-                                <div class="day-header">
-                                    <span class="day-name">${day}</span>
-                                    <span class="day-date">${fullDate}</span>
-                                </div>
-                            `
-                        };
-                    },
-                });
-
-                calendar.render();
-                calendarInitialized = true;
-            } else {
-                setTimeout(() => {
-                    calendar.updateSize();
-                }, 50);
-            }
+            showSection(item);
         });
     }
 });
@@ -287,8 +328,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 // 2. Vypsání statistik do tvých elementů
                 if (countAllRentDates) countAllRentDates.textContent = data.allCount;
-                if (countFreeRentDates) countFreeRentDates.textContent = data.freeCount;
-                if (countRentedDates) countRentedDates.textContent = data.bookedCount;
+                if (countFreeRentDates) countFreeRentDates.textContent = `${data.freeCount} / ${data.allCount}`;
+                if (countRentedDates) countRentedDates.textContent = `${data.bookedCount} / ${data.allCount}`;
             }
         })
     .catch(error => console.error('Chyba při načítání nastavení:', error));
@@ -302,6 +343,24 @@ document.addEventListener("DOMContentLoaded", function() {
             updateUnreadBadge();
         }
     }, 5000);
+
+    // 2. Po načtení stránky zkontrolujeme, zda je v URL hash
+    const currentHash = window.location.hash.substring(1); // získá např. "inbox" z "#inbox"
+
+    if (currentHash) {
+        // Najdeme správnou položku v poli navItems podle ID obsahu
+        const targetItem = navItems.find(item => item.content && item.content.id === currentHash);
+        if (targetItem) {
+            showSection(targetItem);
+            return; // Ukončíme, ať se nespouští výchozí dashboard
+        }
+    }
+
+    // Výchozí fallback (pokud v URL žádný hash není, otevře se dashboard nebo první položka)
+    const defaultItem = navItems.find(item => item.content && item.content.id === 'dashboard') || navItems[0];
+    if (defaultItem) {
+        showSection(defaultItem);
+    }
 });
 
 // nastavení rozsahu zobrazení rozpisu - kalendáře
