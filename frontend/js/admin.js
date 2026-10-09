@@ -41,6 +41,9 @@ let savedLimitDate = null; // Globální proměnná pro uložení limitu
 let calendar;
 let calendarInitialized = false;
 
+let currentEditingId = null;
+let currentEventIsBooked = false;
+
 // vysunutí meníčka v levém admin panelu po kliknutí na šipku + (otočení šipky animací)
 menuArrow.addEventListener("click", () => {
     menuArrowIn.classList.toggle("active");
@@ -54,9 +57,6 @@ adminRefreshArrow.addEventListener("click", () => {
     adminRefreshArrow.style.transform = `rotate(${currentRotation}deg)`;
 })
 
-let currentEditingId = null;
-let currentEventIsBooked = false;
-
 // pole, které propojuje ikonu, textový odkaz a obsah v celém admin panelu
 const navItems = [
     { icon: dashboardIcon, content: dashboardContent },
@@ -64,7 +64,6 @@ const navItems = [
     { icon: reservationsIcon, content: reservationsContent },
     { icon: inboxIcon, content: inboxContent }
 ];
-
 
 navItems.forEach(item => {
     if (item.icon && item.content) {
@@ -137,7 +136,7 @@ navItems.forEach(item => {
 
                         document.getElementById("eventTitle").value = eventType;
 
-                        const clientNameInput = document.getElementById("adminBookedClientName");
+                        const clientNameInput = adminBookedClientName;
                         const clientSurnameInput = document.getElementById("adminBookedClientSurname");
                         const clientTelInput = document.getElementById("adminBookedClientTel");
                         const clientEmailInput = document.getElementById("adminBookedClientEmail");
@@ -164,7 +163,6 @@ navItems.forEach(item => {
 
                         document.getElementById("submitBtn").textContent = "Potvrdit změny";
                         
-                        const deleteBtn = document.getElementById("deleteBtn");
                         if (currentEventIsBooked) {
                             deleteBtn.textContent = "Zrušit rezervaci"; // Jasně vidíme, že budeme rušit jen rezervaci
                         } else {
@@ -256,22 +254,6 @@ navItems.forEach(item => {
     }
 });
 
-// po každém obnovení stránky pro jistotu znovunačtení zpráv a aktualizace odznáčku s počtem nepřečtených zpráv
-// + ošetření toho, aby se v 5s intervalu stránka nerefreshnula zrovna pokud má admin rozkliknutý nějaký email
-document.addEventListener("DOMContentLoaded", function() {
-    loadMessages();
-    updateUnreadBadge();
-    setInterval(() => {
-        const hasExpandedMessage = document.querySelector('.one_message.expanded');
-        if(!hasExpandedMessage) {
-            loadMessages();
-            updateUnreadBadge();
-        }
-    }, 5000);
-});
-
-
-
 // zobrazení inputů pro vyplnění údajů, po kliku na rezervovaný termín
 changeEventTitle.addEventListener("change", function(e) {
     if(this.value === "booked") {
@@ -285,27 +267,42 @@ changeEventTitle.addEventListener("change", function(e) {
     }
 })
 
-
 // načítání z databáze uložené datum limitu rozsahu rozpisu
 document.addEventListener("DOMContentLoaded", function() {
+
     fetch('http://localhost:3000/api/setting')
         .then(response => response.json())
         .then(data => {
-            if (data.success && data.limitDate) {
-                // Formát datumu z databáze ořízneme na YYYY-MM-DD, aby ho input type="date" akceptoval
-                savedLimitDate = data.limitDate.split('T')[0];
+            if (data.success) {
+                // 1. Nastavení limitního data (původní logika)
+                if (data.limitDate) {
+                    savedLimitDate = data.limitDate.split('T')[0];
+                    limitDateInput.value = savedLimitDate;
+
+                    const [year, month, day] = savedLimitDate.split('-');
+                    const formattedDate = `${day}.${month}.${year}`;
                 
-                limitDateInput.value = savedLimitDate; // Datum svítí v inputu
-                
-                const [year, month, day] = savedLimitDate.split('-');
-                const formattedDate = `${day}.${month}.${year}`;
-                
-                dashboardLimitDate.innerHTML = formattedDate;
+                    dashboardLimitDate.innerHTML = formattedDate;
+                }
+
+                // 2. Vypsání statistik do tvých elementů
+                if (countAllRentDates) countAllRentDates.textContent = data.allCount;
+                if (countFreeRentDates) countFreeRentDates.textContent = data.freeCount;
+                if (countRentedDates) countRentedDates.textContent = data.bookedCount;
             }
         })
     .catch(error => console.error('Chyba při načítání nastavení:', error));
-});
 
+    loadMessages();
+    updateUnreadBadge();
+    setInterval(() => {
+        const hasExpandedMessage = document.querySelector('.one_message.expanded');
+        if(!hasExpandedMessage) {
+            loadMessages();
+            updateUnreadBadge();
+        }
+    }, 5000);
+});
 
 // nastavení rozsahu zobrazení rozpisu - kalendáře
 limitDateInput.addEventListener("change", function() {
@@ -331,29 +328,15 @@ limitDateInput.addEventListener("change", function() {
     .catch(error => console.error('Chyba při ukládání:', error));
 });
 
-
-
 cancelBtn.addEventListener("click", function() {
     resetFormMode();
 });
 
-function resetFormMode() {
-    currentEditingId = null;
-    adminEventsForm.reset();
-    document.querySelectorAll(".clientInfo").forEach(element => {
-        element.classList.remove("active");
-    })
-    submitBtn.textContent = "Přidat událost";
-    deleteBtn.style.display = "none";
-    cancelBtn.style.display = "none";
-}
-
-
-document.getElementById("insertEventsForm").addEventListener("submit", function(e) {
+adminEventsForm.addEventListener("submit", function(e) {
     e.preventDefault();
 
     const selectedType = document.getElementById("eventTitle").value;
-    const clientNameVal = document.getElementById("adminBookedClientName").value;
+    const clientNameVal = adminBookedClientName.value;
     const clientSurnameVal = document.getElementById("adminBookedClientSurname").value;
     const clientTelVal = document.getElementById("adminBookedClientTel").value;
     const clientEmailVal = document.getElementById("adminBookedClientEmail").value;
@@ -412,8 +395,8 @@ document.getElementById("insertEventsForm").addEventListener("submit", function(
     .catch(error => console.error('Chyba:', error));
 });
 
-// Obsluha tlačítka pro smazání / zrušení rezervace ve formuláři
-document.getElementById("deleteBtn").addEventListener("click", function() {
+// tlačítko pro smazání rezervace ve formuláři
+deleteBtn.addEventListener("click", function() {
     if (!currentEditingId) return;
 
     // Zjistíme aktuální stav přímo z kalendáře
@@ -453,29 +436,4 @@ document.getElementById("deleteBtn").addEventListener("click", function() {
             .catch(error => console.error('Chyba při mazání události:', error));
         }
     }
-});
-
-document.addEventListener("DOMContentLoaded", function() {
-    fetch('http://localhost:3000/api/setting')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // 1. Nastavení limitního data (původní logika)
-                if (data.limitDate) {
-                    savedLimitDate = data.limitDate.split('T')[0];
-                    limitDateInput.value = savedLimitDate;
-
-                    const [year, month, day] = savedLimitDate.split('-');
-                    const formattedDate = `${day}.${month}.${year}`;
-                
-                    dashboardLimitDate.innerHTML = formattedDate;
-                }
-
-                // 2. Vypsání statistik do tvých elementů
-                if (countAllRentDates) countAllRentDates.textContent = data.allCount;
-                if (countFreeRentDates) countFreeRentDates.textContent = data.freeCount;
-                if (countRentedDates) countRentedDates.textContent = data.bookedCount;
-            }
-        })
-    .catch(error => console.error('Chyba při načítání nastavení:', error));
 });

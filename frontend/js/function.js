@@ -114,6 +114,28 @@ function formatEmailDate(dateString) {
     return `${dateText} ${hours}:${minutes}`;
 }
 
+/*
+    ADMIN PANEL
+*/
+
+// aktualizuje počet nepřečtených zpráv
+function updateUnreadBadge() {
+    fetch('http://localhost:3000/api/reservations/unread-count')
+    .then(response => response.json())
+    .then(data => {
+        const badge = document.getElementById('unreadMessagesIcon');
+        if (!badge) return;
+
+        if (data.unreadCount > 0) {
+            badge.textContent = data.unreadCount;
+            badge.style.display = 'inline-flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    })
+    .catch(err => console.error("Chyba při načítání počtu nepřečtených:", err));
+}
+
 // načtení informací z tabulky reservations pro inbox pro admin panel
 function loadMessages() {
     fetch('http://localhost:3000/api/reservations')
@@ -175,20 +197,13 @@ function loadMessages() {
     .catch(err => console.error("Chyba při načítání zpráv:", err));
 }
 
-// aktualizuje počet nepřečtených zpráv
-function updateUnreadBadge() {
-    fetch('http://localhost:3000/api/reservations/unread-count')
-    .then(response => response.json())
-    .then(data => {
-        const badge = document.getElementById('unreadMessagesIcon');
-        if (!badge) return;
-
-        if (data.unreadCount > 0) {
-            badge.textContent = data.unreadCount;
-            badge.style.display = 'inline-flex';
-        } else {
-            badge.style.display = 'none';
-        }
+function resetFormMode() {
+    currentEditingId = null;
+    adminEventsForm.reset();
+    document.querySelectorAll(".clientInfo").forEach(element => {
+        element.classList.remove("active");
     })
-    .catch(err => console.error("Chyba při načítání počtu nepřečtených:", err));
+    submitBtn.textContent = "Přidat událost";
+    deleteBtn.style.display = "none";
+    cancelBtn.style.display = "none";
 }

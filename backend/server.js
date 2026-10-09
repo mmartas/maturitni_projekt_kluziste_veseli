@@ -33,25 +33,8 @@ const transporter = nodemailer.createTransport({
 app.listen(PORT, () => {
     console.log(`Backend server úspěšně běží na adrese: http://localhost:${PORT}`);
 });
-updateRentCounts();
 
-// formátování termínu z ISO formátu na formát datum-čas
-function formatEmailDate(dateString) {
-    if (!dateString) return '';
-    const d = new Date(dateString);
-    
-    const hours = d.getHours().toString().padStart(2, "0");
-    const minutes = d.getMinutes().toString().padStart(2, "0");
-    
-    const dateText = 
-        d.getDate() + "." + 
-        (d.getMonth() + 1) + "." + 
-        d.getFullYear();
-
-    return `${dateText} ${hours}:${minutes}`;
-}
-
-// Pomocná funkce pro přepočet a uložení všech statistik pronájmů
+// funkce pro přepočet a uložení všech statistik pronájmů
 async function updateRentCounts() {
     try {
         // 1. Celkový počet pronájmů (všechny eventy s type = 'rent')
@@ -74,14 +57,14 @@ async function updateRentCounts() {
             "UPDATE setting SET count_free_rent = ?, count_booked_rent = ?, count_all_rent = ? WHERE id = 1",
             [freeCount, bookedCount, allCount]
         );
-        
-        console.log(`Statistiky pronájmů -> Volné: ${freeCount}, Obsazené: ${bookedCount}, Celkem: ${allCount}`);
     } catch (err) {
         console.error("Chyba při aktualizaci statistik pronájmů:", err);
     }
 }
 
-// 1. API Endpoint pro FullCalendar (vrátí události z databáze)
+updateRentCounts();
+
+// 1. API Endpoint pro FullCalendar (vrátí události z databáze do kalendáře)
 app.get('/api/events', async (req, res) => {
     try {
         // zjišťování jestli je k eventu už rezervace
@@ -120,7 +103,7 @@ app.get('/api/events', async (req, res) => {
     }
 });
 
-// 1. Vytvoření nové události a rezervace (POST)
+// 2. Vytvoření nové události a rezervace
 app.post('/api/events', async (req, res) => {
     try {
         const { title, start, end, type, name, surname, phone, email, date } = req.body;
@@ -149,119 +132,7 @@ app.post('/api/events', async (req, res) => {
     }
 });
 
-// 2. API Endpoint pro FullCalendar (ukládá nové rezervace do databáze a odesílá e-maily)
-app.post('/api/reservations', async (req, res) => {
-    try {
-        const { event_id, name, surname, email, phone, note, date } = req.body;
-
-        // vloží novou rezervaci do databáze
-        await pool.query(
-            "INSERT INTO reservations (event_id, name, surname, email, phone, note, date) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [event_id, name, surname, email, phone, note, date]
-        );
-
-        const formattedDate = formatEmailDate(date);
-
-        // email pro klienta
-        const clientMailOptions = {
-            from: '"Kluziště Veselí" <kluzistevcentruveseli@gmail.com>',
-            to: email,
-            subject: 'Potvrzení rezervace kluziště',
-            text: `Dobrý den, ${name} ${surname},\n\nvaše rezervace na kluziště byla úspěšně vytvořena.\nTermín: ${formattedDate}\n\nTěšíme se na Vás!`
-        };
-
-        // email pro administrátora
-        const adminMailOptions = {
-            from: '"Systém Kluziště" <kluzistevcentruveseli@gmail.com>',
-            to: 'kluzistevcentruveseli@gmail.com',
-            subject: 'Nová rezervace na kluzišti!',
-            text: `Byla vytvořena nová rezervace:\n\nJméno: ${name} ${surname}\nE-mail: ${email}\nTelefon: ${phone}\nTermín: ${formattedDate}\nPoznámka: ${note || 'žádná'}`
-        };
-
-        await transporter.sendMail(clientMailOptions);
-        await transporter.sendMail(adminMailOptions);
-
-        res.json({ success: true, message: "Rezervace byla úspěšně vytvořena!" });
-    } catch (err) {
-        console.error("Chyba při ukládání rezervace:", err);
-        res.status(500).json({ error: "Chyba serveru při ukládání" });
-    }
-});
-
-// 3. endpoint GET pro stažení rezervací do admin panelu, kvůli inboxu
-app.get('/api/reservations', async (req, res) => {
-    try {
-        const [rows] = await pool.query("SELECT * FROM reservations ORDER BY id DESC");
-        res.json(rows);
-    } catch (err) {
-        console.error("Chyba při načítání rezervací:", err);
-        res.status(500).json({ error: "Chyba serveru při načítání" });
-    }
-});
-
-// 4. endpoint pro získání informace o tom, jestli admin již přečetl danou zprávu v inboxu
-app.patch('/api/reservations/:id/read', async (req, res) => {
-    try {
-        const { id } = req.params;
-        await pool.query("UPDATE reservations SET is_read = 1 WHERE id = ?", [id]);
-        res.json({ success: true });
-    } catch (err) {
-        console.error("Chyba při aktualizaci stavu zprávy:", err);
-        res.status(500).json({ error: "Chyba serveru" });
-    }
-});
-
-// 5. endpoint pro získání počtu nepřečtených rezervací v inboxu
-app.get('/api/reservations/unread-count', async (req, res) => {
-    try {
-        const [rows] = await pool.query("SELECT COUNT(*) AS count FROM reservations WHERE is_read = 0");
-        res.json({ unreadCount: rows[0].count });
-    } catch (err) {
-        console.error("Chyba při zjišťování počtu nepřečtených zpráv:", err);
-        res.status(500).json({ error: "Chyba serveru" });
-    }
-});
-
-
-// 1. Získání uloženého nastavení z databáze - konec aktuálního rozpisu
-app.get('/api/setting', async (req, res) => {
-    try {
-        const [rows] = await pool.query("SELECT calendar_end_time, count_free_rent, count_booked_rent, count_all_rent FROM setting LIMIT 1");
-        
-        res.json({ 
-            success: true, 
-            limitDate: rows[0] && rows[0].calendar_end_time ? rows[0].calendar_end_time : null,
-            freeCount: rows[0] ? rows[0].count_free_rent : 0,
-            bookedCount: rows[0] ? rows[0].count_booked_rent : 0,
-            allCount: rows[0] ? rows[0].count_all_rent : 0
-        });
-    } catch (err) {
-        console.error("Chyba při načítání nastavení:", err);
-        res.status(500).json({ error: "Chyba serveru" });
-    }
-});
-
-// 2. Uložení / aktualizace limitního data v databázi
-app.post('/api/setting', async (req, res) => {
-    try {
-        const { limitDate } = req.body;
-
-        // Uložíme do tabulky (pokud záznam s id=1 neexistuje, vytvoří se, jinak se aktualizuje)
-        await pool.query(
-            "INSERT INTO setting (id, calendar_end_time) VALUES (1, ?) ON DUPLICATE KEY UPDATE calendar_end_time = ?",
-            [limitDate, limitDate]
-        );
-
-        res.json({ success: true, message: "Nastavení uloženo do databáze!" });
-    } catch (err) {
-        console.error("Chyba při ukládání nastavení:", err);
-        res.status(500).json({ error: "Chyba serveru" });
-    }
-});
-
-
-
-// Úprava existující události (PUT)
+// 3. Úprava existující události
 app.put('/api/events/:id', async (req, res) => {
     try {
         const eventId = req.params.id;
@@ -301,7 +172,7 @@ app.put('/api/events/:id', async (req, res) => {
     }
 });
 
-// 1. Smazání CELÉHO eventu (smaže event a díky cascade i jeho rezervaci)
+// 4. Smazání eventu
 app.delete('/api/events/:id', async (req, res) => {
     try {
         const eventId = req.params.id;
@@ -314,7 +185,80 @@ app.delete('/api/events/:id', async (req, res) => {
     }
 });
 
-// 2. Zrušení POUZE rezervace (event v events zůstane a uvolní se)
+// 5. API Endpoint pro FullCalendar (ukládá nové rezervace do databáze a odesílá e-maily)
+app.post('/api/reservations', async (req, res) => {
+    try {
+        const { event_id, name, surname, email, phone, note, date } = req.body;
+
+        // vloží novou rezervaci do databáze
+        await pool.query(
+            "INSERT INTO reservations (event_id, name, surname, email, phone, note, date) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [event_id, name, surname, email, phone, note, date]
+        );
+
+        const formattedDate = formatEmailDate(date);
+
+        // email pro klienta
+        const clientMailOptions = {
+            from: '"Kluziště Veselí" <kluzistevcentruveseli@gmail.com>',
+            to: email,
+            subject: 'Potvrzení rezervace kluziště',
+            text: `Dobrý den, ${name} ${surname},\n\nvaše rezervace na kluziště byla úspěšně vytvořena.\nTermín: ${formattedDate}\n\nTěšíme se na Vás!`
+        };
+
+        // email pro administrátora
+        const adminMailOptions = {
+            from: '"Systém Kluziště" <kluzistevcentruveseli@gmail.com>',
+            to: 'kluzistevcentruveseli@gmail.com',
+            subject: 'Nová rezervace na kluzišti!',
+            text: `Byla vytvořena nová rezervace:\n\nJméno: ${name} ${surname}\nE-mail: ${email}\nTelefon: ${phone}\nTermín: ${formattedDate}\nPoznámka: ${note || 'žádná'}`
+        };
+
+        await transporter.sendMail(clientMailOptions);
+        await transporter.sendMail(adminMailOptions);
+
+        res.json({ success: true, message: "Rezervace byla úspěšně vytvořena!" });
+    } catch (err) {
+        console.error("Chyba při ukládání rezervace:", err);
+        res.status(500).json({ error: "Chyba serveru při ukládání" });
+    }
+});
+
+// 6. endpoint pro stažení rezervací do admin panelu do inboxu
+app.get('/api/reservations', async (req, res) => {
+    try {
+        const [rows] = await pool.query("SELECT * FROM reservations ORDER BY id DESC");
+        res.json(rows);
+    } catch (err) {
+        console.error("Chyba při načítání rezervací:", err);
+        res.status(500).json({ error: "Chyba serveru při načítání" });
+    }
+});
+
+// 7. endpoint pro získání informace o tom, jestli admin již přečetl danou zprávu v inboxu
+app.patch('/api/reservations/:id/read', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.query("UPDATE reservations SET is_read = 1 WHERE id = ?", [id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Chyba při aktualizaci stavu zprávy:", err);
+        res.status(500).json({ error: "Chyba serveru" });
+    }
+});
+
+// 8. endpoint pro získání počtu nepřečtených rezervací v inboxu
+app.get('/api/reservations/unread-count', async (req, res) => {
+    try {
+        const [rows] = await pool.query("SELECT COUNT(*) AS count FROM reservations WHERE is_read = 0");
+        res.json({ unreadCount: rows[0].count });
+    } catch (err) {
+        console.error("Chyba při zjišťování počtu nepřečtených zpráv:", err);
+        res.status(500).json({ error: "Chyba serveru" });
+    }
+});
+
+// 9. zrušení rezervace (dále potom zůstává volný event pro rezervaci)
 app.delete('/api/reservations/by-event/:eventId', async (req, res) => {
     try {
         const eventId = req.params.eventId;
@@ -324,6 +268,43 @@ app.delete('/api/reservations/by-event/:eventId', async (req, res) => {
         res.json({ success: true, message: "Rezervace byla zrušena, blok je opět volný." });
     } catch (err) {
         console.error("Chyba při rušení rezervace:", err);
+        res.status(500).json({ error: "Chyba serveru" });
+    }
+});
+
+
+// 10. získání datumu z databáze do kdy je vyplněný rozpis
+app.get('/api/setting', async (req, res) => {
+    try {
+        const [rows] = await pool.query("SELECT calendar_end_time, count_free_rent, count_booked_rent, count_all_rent FROM setting LIMIT 1");
+        
+        res.json({ 
+            success: true, 
+            limitDate: rows[0] && rows[0].calendar_end_time ? rows[0].calendar_end_time : null,
+            freeCount: rows[0] ? rows[0].count_free_rent : 0,
+            bookedCount: rows[0] ? rows[0].count_booked_rent : 0,
+            allCount: rows[0] ? rows[0].count_all_rent : 0
+        });
+    } catch (err) {
+        console.error("Chyba při načítání nastavení:", err);
+        res.status(500).json({ error: "Chyba serveru" });
+    }
+});
+
+// 11. Uložení / aktualizace data do kd je vyplněný rozpis
+app.post('/api/setting', async (req, res) => {
+    try {
+        const { limitDate } = req.body;
+
+        // Uložíme do tabulky (pokud záznam s id=1 neexistuje, vytvoří se, jinak se aktualizuje)
+        await pool.query(
+            "INSERT INTO setting (id, calendar_end_time) VALUES (1, ?) ON DUPLICATE KEY UPDATE calendar_end_time = ?",
+            [limitDate, limitDate]
+        );
+
+        res.json({ success: true, message: "Nastavení uloženo do databáze!" });
+    } catch (err) {
+        console.error("Chyba při ukládání nastavení:", err);
         res.status(500).json({ error: "Chyba serveru" });
     }
 });
