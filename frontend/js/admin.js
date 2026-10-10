@@ -537,25 +537,30 @@ function loadAdminReservations() {
             // 2. Procházení jednotlivých dnů a generování HTML
             for (const [dateStr, dayEvents] of Object.entries(groupedByDate)) {
                 const totalCount = dayEvents.length;
-                const bookedCount = dayEvents.filter(ev => ev.booked === 1).length;
+                const bookedCount = dayEvents.filter(ev => ev.reservation_id).length;
 
                 // Formátování data pro zobrazení
                 const dateObj = new Date(dateStr);
                 const dayOfWeek = dateObj.toLocaleDateString('cs-CZ', { weekday: 'long' });
                 const formattedDate = dateObj.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
 
-                let dayLabel = "";
-                if (dateStr === todayStr) {
-                    dayLabel = `Dnes, ${formattedDate}, ${dayOfWeek}`;
-                } else if (dateStr === tomorrowStr) {
-                    dayLabel = `Zítra, ${formattedDate}, ${dayOfWeek}`;
-                } else {
-                    dayLabel = `${formattedDate}, ${dayOfWeek}`;
-                }
-
                 // Vytvoření kontejneru pro daný den
                 const dayWrapper = document.createElement("div");
                 dayWrapper.className = "reservation-day-group";
+                
+                let dayLabel = "";
+                if (dateStr === todayStr) {
+                    dayLabel = `Dnes, ${formattedDate}, ${dayOfWeek}`;
+                    dayWrapper.classList.add("today");
+                } else if (dateStr === tomorrowStr) {
+                    dayLabel = `Zítra, ${formattedDate}, ${dayOfWeek}`;
+                    dayWrapper.classList.add("tomorrow");
+                } else {
+                    dayLabel = `${formattedDate}, ${dayOfWeek}`;
+                    dayWrapper.classList.remove("today", "tomorrow");
+                }
+
+                
 
                 // Hlavička dne (např. "Dnes, 10.10.2026, sobota (2/4)")
                 dayWrapper.innerHTML = `
@@ -577,7 +582,7 @@ function loadAdminReservations() {
 
                     const card = document.createElement("div");
 
-                    if (ev.booked === 1) {
+                    if (ev.reservation_id) {
                         // Větší políčko pro rezervovaný termín se všemi informacemi
                         card.className = "reservation-card booked";
                         card.innerHTML = `

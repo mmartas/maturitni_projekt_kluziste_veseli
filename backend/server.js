@@ -363,12 +363,29 @@ app.post('/api/update-counts', async (req, res) => {
 });
 
 
+// app.get('/api/admin-reservations', async (req, res) => {
+//     try {
+//         const [rows] = await pool.query(`
+//             SELECT e.id AS event_id, e.title, e.start, e.end, e.type,
+//                    r.id AS reservation_id, r.name, r.surname, r.phone, r.email, r.note
+//                    IF(r.id IS NOT NULL, 1, 0) AS booked
+//             FROM events e
+//             LEFT JOIN reservations r ON e.id = r.event_id
+//             WHERE e.type = 'rent' AND e.start >= CURDATE()
+//             ORDER BY e.start ASC
+//         `);
+//         res.json({ success: true, events: rows });
+//     } catch (err) {
+//         console.error("Chyba při načítání administrace rezervací:", err);
+//         res.status(500).json({ error: "Chyba serveru" });
+//     }
+// });
+
 app.get('/api/admin-reservations', async (req, res) => {
     try {
         const [rows] = await pool.query(`
             SELECT e.id AS event_id, e.title, e.start, e.end, e.type,
                    r.id AS reservation_id, r.name, r.surname, r.phone, r.email, r.note
-                   CASE WHEN r.id IS NOT NULL THEN 1 ELSE 0 END AS booked
             FROM events e
             LEFT JOIN reservations r ON e.id = r.event_id
             WHERE e.type = 'rent' AND e.start >= CURDATE()
