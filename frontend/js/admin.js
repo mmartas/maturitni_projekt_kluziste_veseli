@@ -283,6 +283,10 @@ function showSection(item) {
             initCalendar();
         }, 50);
     }
+
+    if (item.content === reservationsContent) {
+        loadAdminReservations();
+    }
 }
 
 navItems.forEach(item => {
@@ -496,3 +500,109 @@ deleteBtn.addEventListener("click", function() {
         }
     }
 });
+
+
+function loadAdminReservations() {
+    const listContainer = document.getElementById("reservationsList");
+    if (!listContainer) return;
+
+    fetch('http://localhost:3000/api/admin-reservations')
+        .then(response => response.json())
+        .then(res => {
+            if (!res.success || !res.events) return;
+
+            const events = res.events;
+            listContainer.innerHTML = ""; // Vyčistíme starý obsah
+
+            // 1. Získání dnešního a zítřejšího data v lokálním čase bez UTC chyb
+            const now = new Date();
+            const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+
+            // 2. Seskupení událostí podle data
+            const groupedByDate = {};
+            events.forEach(ev => {
+                // Bezpečné uříznutí prvních 10 znaků (vezme "YYYY-MM-DD" bez ohledu na mezeru nebo 'T')
+                const dateKey = ev.start.substring(0, 10); 
+                
+                if (!groupedByDate[dateKey]) {
+                    groupedByDate[dateKey] = [];
+                }
+                groupedByDate[dateKey].push(ev);
+            });
+
+            // 2. Procházení jednotlivých dnů a generování HTML
+            for (const [dateStr, dayEvents] of Object.entries(groupedByDate)) {
+                const totalCount = dayEvents.length;
+                const bookedCount = dayEvents.filter(ev => ev.booked === 1).length;
+
+                // Formátování data pro zobrazení
+                const dateObj = new Date(dateStr);
+                const dayOfWeek = dateObj.toLocaleDateString('cs-CZ', { weekday: 'long' });
+                const formattedDate = dateObj.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
+
+                let dayLabel = "";
+                if (dateStr === todayStr) {
+                    dayLabel = `Dnes, ${formattedDate}, ${dayOfWeek}`;
+                } else if (dateStr === tomorrowStr) {
+                    dayLabel = `Zítra, ${formattedDate}, ${dayOfWeek}`;
+                } else {
+                    dayLabel = `${formattedDate}, ${dayOfWeek}`;
+                }
+
+                // Vytvoření kontejneru pro daný den
+                const dayWrapper = document.createElement("div");
+                dayWrapper.className = "reservation-day-group";
+
+                // Hlavička dne (např. "Dnes, 10.10.2026, sobota (2/4)")
+                dayWrapper.innerHTML = `
+                    <div class="reservation-day-header title">
+                        <h3>${dayLabel}</h3>
+                        <span class="day-stats text">${bookedCount}/${totalCount}</span>
+                        <hr>
+                    </div>
+                    <div class="reservation-cards-container text"></div>
+                `;
+
+                const cardsContainer = dayWrapper.querySelector(".reservation-cards-container");
+
+                // 3. Vykreslení jednotlivých karet (bloků) v daném dni
+                dayEvents.forEach(ev => {
+                    const startTime = ev.start.substring(11, 16);
+                    const endTime = ev.end ? ev.end.substring(11, 16) : "";
+                    const timeRange = `${startTime} - ${endTime}`;
+
+                    const card = document.createElement("div");
+
+                    if (ev.booked === 1) {
+                        // Větší políčko pro rezervovaný termín se všemi informacemi
+                        card.className = "reservation-card booked";
+                        card.innerHTML = `
+                            <div class="card-time">${timeRange}</div>
+                            <div class="card-client-info">
+                                <strong>${ev.name || ""} ${ev.surname || ""}</strong>
+                                <span>📞 ${ev.phone || "neuvedeno"}</span>
+                                <span>✉️ ${ev.email || "neuvedeno"}</span>
+                                <span>📝 ${ev.note || "nevyplněno"}</span>
+                            </div>
+                        `;
+                    } else {
+                        // Menší, kompaktní políčko pro volný pronájem
+                        card.className = "reservation-card free";
+                        card.innerHTML = `
+                            <div class="card-time">${timeRange}</div>
+                            <div class="card-free-text">Možnost pronájmu (Volné)</div>
+                        `;
+                    }
+
+                    cardsContainer.appendChild(card);
+                });
+
+                listContainer.appendChild(dayWrapper);
+            }
+        })
+        .catch(err => console.error("Chyba při načítání rezervací:", err));
+}
