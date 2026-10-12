@@ -589,9 +589,9 @@ function loadAdminReservations() {
                             <div class="card-time">${timeRange}</div>
                             <div class="card-client-info">
                                 <strong>${ev.name || ""} ${ev.surname || ""}</strong>
-                                <span>📞 ${ev.phone || "neuvedeno"}</span>
-                                <span>✉️ ${ev.email || "neuvedeno"}</span>
-                                <span>📝 ${ev.note || "nevyplněno"}</span>
+                                <span><i class="fa-solid fa-phone"></i> ${ev.phone || "neuvedeno"}</span>
+                                <span><i class="fa-solid fa-envelope"></i> ${ev.email || "neuvedeno"}</span>
+                                <span><i class="fa-solid fa-sticky-note"></i> ${ev.note || "nevyplněno"}</span>
                             </div>
                         `;
                     } else {

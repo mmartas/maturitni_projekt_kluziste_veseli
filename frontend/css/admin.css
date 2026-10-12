@@ -283,16 +283,13 @@ main {
 .reservation-day-group {
     display: flex;
     flex-direction: column;
-    opacity: 0.7;
+    gap: 0.5rem;
 }
 .reservation-day-header {
     display: flex;
     flex-direction: row;
     align-items: center;
     
-}
-.reservation-day-group.today, .reservation-day-group.tomorrow {
-    opacity: 1 !important;
 }
 .reservation-day-group.today .reservation-day-header h3, .reservation-day-group.today .reservation-day-header span {
     border-color: var(--red-color-lighter);
@@ -334,9 +331,18 @@ main {
     flex-direction: column;
     gap: 0.5rem;
 }
-.reservation-card.free {
+.reservation-card {
     display: flex;
     flex-direction: row;
     align-items: center;
+    gap: 1rem;
+}
+.reservation-card.free {
+    opacity: 0.7;
+}
+
+.card-client-info {
+    display: flex;
+    flex-direction: row;
     gap: 1rem;
 }
