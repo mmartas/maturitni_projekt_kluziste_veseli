@@ -164,7 +164,7 @@ function loadMessages() {
                     <span class="message_subject">Potvrzení rezervace</span>
                     <span class="client_email">${msg.email}</span>
                     <span class="message_body">${msg.note || 'Bez poznámky'}</span>
-                    <a class="trashCan" href="#"><i class="fa-solid fa-trash-can"></i></a>
+                    <a class="trashCan box_glass_effect_red" href="#"><i class="fa-solid fa-trash-can"></i></a>
                 </div>
                 <div class="message_details">
                     <p><strong>Jméno a příjmení:</strong> ${msg.name} ${msg.surname}</p>

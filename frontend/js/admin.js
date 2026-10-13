@@ -6,11 +6,13 @@ const dashboardIcon = document.getElementById("dashboardIcon");
 const eventsIcon = document.getElementById("eventsIcon");
 const reservationsIcon = document.getElementById("reservationsIcon");
 const inboxIcon = document.getElementById("inboxIcon");
+const customersIcon = document.getElementById("customersIcon");
 
 const dashboardContent = document.getElementById("dashboard");
 const eventsContent = document.getElementById("events");
 const reservationsContent = document.getElementById("reservations");
 const inboxContent = document.getElementById("inbox");
+const customersContent = document.getElementById("customers");
 const allContents = document.querySelectorAll("#adminContent .content");
 
 const adminEventsForm = document.getElementById("insertEventsForm");
@@ -234,7 +236,8 @@ const navItems = [
     { icon: dashboardIcon, content: dashboardContent },
     { icon: eventsIcon, content: eventsContent },
     { icon: reservationsIcon, content: reservationsContent },
-    { icon: inboxIcon, content: inboxContent }
+    { icon: inboxIcon, content: inboxContent },
+    { icon: customersIcon, content: customersContent }
 ];
 
 // Pomocná funkce pro přepnutí sekce a uložení do URL
@@ -286,6 +289,10 @@ function showSection(item) {
 
     if (item.content === reservationsContent) {
         loadAdminReservations();
+    }
+
+    if (item.content === customersContent) {
+        loadCustomers();
     }
 }
 
@@ -610,4 +617,42 @@ function loadAdminReservations() {
             }
         })
         .catch(err => console.error("Chyba při načítání rezervací:", err));
+}
+
+
+function loadCustomers() {
+    const container = document.getElementById('customersList');
+    if (!container) return;
+
+    fetch('http://localhost:3000/api/admin-customers')
+        .then(response => response.json())
+        .then(res => {
+            if (!res.success || !res.customers) return;
+
+            container.innerHTML = '';
+
+            if (res.customers.length === 0) {
+                container.innerHTML = '<p>Zatím žádní zákazníci.</p>';
+                return;
+            }
+
+            res.customers.forEach(c => {
+                const card = document.createElement('div');
+                card.className = 'customer-card'; // Můžeš si nastylovat v CSS
+
+                card.innerHTML = `
+                    <div class="customer-details">
+                        <strong>${c.client_name || ''} ${c.client_surname || ''}</strong>
+                        <span>📞 ${c.client_phone || 'Neuvedeno'}</span>
+                        <span>✉️ ${c.client_email || 'Neuvedeno'}</span>
+                    </div>
+                    <div class="customer-count">
+                        Počet objednávek: <strong>${c.order_count}</strong>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        })
+        .catch(err => console.error("Chyba při načítání zákazníků:", err));
 }

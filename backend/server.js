@@ -255,7 +255,7 @@ app.get('/api/reservations', async (req, res) => {
 app.patch('/api/reservations/:id/hide', async (req, res) => {
     try {
         const reservationId = req.params.id;
-        await pool.query("UPDATE reservations SET deletedMessage = 1 WHERE id = ?", [reservationId]);
+        await pool.query("UPDATE reservations SET deletedMessage = 1, is_read = 1 WHERE id = ?", [reservationId]);
         res.json({ success: true, message: "Zpráva byla skryta z inboxu." });
     } catch (err) {
         console.error("Chyba při skrývání zprávy:", err);
@@ -278,7 +278,7 @@ app.patch('/api/reservations/:id/read', async (req, res) => {
 // 8. endpoint pro získání počtu nepřečtených rezervací v inboxu
 app.get('/api/reservations/unread-count', async (req, res) => {
     try {
-        const [rows] = await pool.query("SELECT COUNT(*) AS count FROM reservations WHERE is_read = 0");
+        const [rows] = await pool.query("SELECT COUNT(*) AS count FROM reservations WHERE is_read = 0 AND deletedMessage = 0");
         res.json({ unreadCount: rows[0].count });
     } catch (err) {
         console.error("Chyba při zjišťování počtu nepřečtených zpráv:", err);
@@ -362,25 +362,6 @@ app.post('/api/update-counts', async (req, res) => {
     }
 });
 
-
-// app.get('/api/admin-reservations', async (req, res) => {
-//     try {
-//         const [rows] = await pool.query(`
-//             SELECT e.id AS event_id, e.title, e.start, e.end, e.type,
-//                    r.id AS reservation_id, r.name, r.surname, r.phone, r.email, r.note
-//                    IF(r.id IS NOT NULL, 1, 0) AS booked
-//             FROM events e
-//             LEFT JOIN reservations r ON e.id = r.event_id
-//             WHERE e.type = 'rent' AND e.start >= CURDATE()
-//             ORDER BY e.start ASC
-//         `);
-//         res.json({ success: true, events: rows });
-//     } catch (err) {
-//         console.error("Chyba při načítání administrace rezervací:", err);
-//         res.status(500).json({ error: "Chyba serveru" });
-//     }
-// });
-
 app.get('/api/admin-reservations', async (req, res) => {
     try {
         const [rows] = await pool.query(`
@@ -394,6 +375,22 @@ app.get('/api/admin-reservations', async (req, res) => {
         res.json({ success: true, events: rows });
     } catch (err) {
         console.error("Chyba při načítání administrace rezervací:", err);
+        res.status(500).json({ error: "Chyba serveru" });
+    }
+});
+
+
+app.get('/api/admin-customers', async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT name, surname, email, phone, COUNT(*) AS order_count
+            FROM reservations
+            GROUP BY email, name, surname, phone
+            ORDER BY order_count DESC
+        `);
+        res.json({ success: true, customers: rows });
+    } catch (err) {
+        console.error("Chyba při načítání zákazníků:", err);
         res.status(500).json({ error: "Chyba serveru" });
     }
 });

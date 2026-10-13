@@ -218,6 +218,16 @@ main {
     color: var(--white-color);
     z-index: 999;
 }
+.trashCan {
+    margin-left: auto;
+    color: var(--white-color);
+    border-radius: 100%;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 /* END - INBOX CONTENT */
 
 /* START - EVENTS CONTENT*/
@@ -345,4 +355,57 @@ main {
     display: flex;
     flex-direction: row;
     gap: 1rem;
+}
+
+.card-time {
+    width: 130px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 1. Nastavení pozice pro textový odkaz v menu, aby podtržení drželo své místo */
+#adminMenu ul.text li a:not(.menu_icons):not(.icon_arrow_menu_refresh) {
+    position: relative;
+    display: inline-block;
+    text-decoration: none; /* Pro jistotu zruší výchozí podtržení, pokud nějaké je */
+}
+
+/* 2. Vytvoření neviditelného podtržítka pomocí ::after */
+#adminMenu ul.text li a:not(.menu_icons):not(.icon_arrow_menu_refresh)::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;            /* Tloušťka čáry */
+    bottom: -3px;           /* Odsazení pod čarou */
+    left: 0;
+    background-color: var(--red-color); /* Zdědí barvu textu */
+    
+    /* Zmenšení na nulu a nastavení počátku animace vlevo */
+    transform: scaleX(0);
+    transform-origin: left; 
+    transition: transform 0.3s ease-in-out; /* Plynulost animace */
+}
+
+/* 3. Spuštění animace při najetí na ikonu (nebo na celý řádek li) */
+#adminMenu ul.text li .menu_icons:hover + a::after,
+#adminMenu ul.text li:hover a:not(.menu_icons):not(.icon_arrow_menu_refresh)::after {
+    transform: scaleX(1); /* Roztáhne čáru zleva doprava na 100% */
+}
+
+#adminMenu ul.text li .menu_icons.active + a::after {
+    transform: scaleX(1);
 }
