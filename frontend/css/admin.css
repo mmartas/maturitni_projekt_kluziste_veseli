@@ -14,15 +14,13 @@ main {
     gap: 1rem;
 }
 
+/*
+    MENU START
+*/
 #adminMenu {
     width: 180px;
     height: 100%;
     color: white;
-}
-
-#adminContent {
-    flex: 1;
-    height: 100%;
 }
 
 #adminMenuWrapper #adminMenu .admin_menu_inside {
@@ -115,6 +113,44 @@ main {
     width: 226px;
 }
 
+#adminMenu ul.text li a:not(.menu_icons):not(.icon_arrow_menu_refresh) {
+    position: relative;
+    display: inline-block;
+    text-decoration: none;
+}
+
+#adminMenu ul.text li a:not(.menu_icons):not(.icon_arrow_menu_refresh)::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;            
+    bottom: -3px;          
+    left: 0;
+    background-color: var(--red-color);
+    transform: scaleX(0);
+    transform-origin: left; 
+    transition: transform 0.3s ease-in-out;
+}
+
+#adminMenu ul.text li .menu_icons:hover + a::after,
+#adminMenu ul.text li:hover a:not(.menu_icons):not(.icon_arrow_menu_refresh)::after {
+    transform: scaleX(1);
+}
+
+#adminMenu ul.text li .menu_icons.active + a::after {
+    transform: scaleX(1);
+}
+/*
+    MENU END
+*/
+
+/*
+    CONTENT START
+*/
+#adminContent {
+    flex: 1;
+    height: 100%;
+}
 #adminContent .wrapper {
     width: 100%;
     height: 100%;
@@ -142,11 +178,13 @@ main {
     flex-direction: column;
     gap: 1rem;
 }
+/*
+    CONTENT END
+*/
 
-
-
-
-/* START - INBOX CONTENT */
+/*
+    START - INBOX CONTENT
+*/
 .one_message {
     width: 100%;
     display: flex;
@@ -228,9 +266,13 @@ main {
     align-items: center;
     justify-content: center;
 }
-/* END - INBOX CONTENT */
+/*
+    END - INBOX CONTENT
+*/
 
-/* START - EVENTS CONTENT*/
+/*
+    START - EVENTS CONTENT
+*/
 .fc .fc-view-harness-active > .fc-view {
     padding: 1rem;
 }
@@ -278,9 +320,13 @@ main {
 .form_buttons button {
     width: 100%;
 }
-/* END - EVENTS CONTENT */
+/*
+    END - EVENTS CONTENT
+*/
 
-/* START - RESERVATION CONTENT */
+/*
+    START - RESERVATION CONTENT
+*/
 .reservations {
     width: 100%;
 }
@@ -360,52 +406,34 @@ main {
 .card-time {
     width: 130px;
 }
+/*
+    END - RESERVATION CONTENT
+*/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* 1. Nastavení pozice pro textový odkaz v menu, aby podtržení drželo své místo */
-#adminMenu ul.text li a:not(.menu_icons):not(.icon_arrow_menu_refresh) {
-    position: relative;
-    display: inline-block;
-    text-decoration: none; /* Pro jistotu zruší výchozí podtržení, pokud nějaké je */
-}
-
-/* 2. Vytvoření neviditelného podtržítka pomocí ::after */
-#adminMenu ul.text li a:not(.menu_icons):not(.icon_arrow_menu_refresh)::after {
-    content: '';
-    position: absolute;
+/*
+    START - CUSTOMERS CONTENT
+*/
+.admin-table {
     width: 100%;
-    height: 2px;            /* Tloušťka čáry */
-    bottom: -3px;           /* Odsazení pod čarou */
-    left: 0;
-    background-color: var(--red-color); /* Zdědí barvu textu */
-    
-    /* Zmenšení na nulu a nastavení počátku animace vlevo */
-    transform: scaleX(0);
-    transform-origin: left; 
-    transition: transform 0.3s ease-in-out; /* Plynulost animace */
+    border-collapse: collapse;
+    margin-top: 20px;
+    color: #fff;
+    text-align: left;
 }
 
-/* 3. Spuštění animace při najetí na ikonu (nebo na celý řádek li) */
-#adminMenu ul.text li .menu_icons:hover + a::after,
-#adminMenu ul.text li:hover a:not(.menu_icons):not(.icon_arrow_menu_refresh)::after {
-    transform: scaleX(1); /* Roztáhne čáru zleva doprava na 100% */
+.admin-table th, .admin-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-#adminMenu ul.text li .menu_icons.active + a::after {
-    transform: scaleX(1);
+.admin-table th {
+    background: rgba(255, 255, 255, 0.05);
+    font-weight: 600;
 }
+
+.admin-table tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+/*
+    END - CUSTOMERS CONTENT
+*/

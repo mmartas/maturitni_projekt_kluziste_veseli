@@ -621,37 +621,47 @@ function loadAdminReservations() {
 
 
 function loadCustomers() {
-    const container = document.getElementById('customersList');
-    if (!container) return;
+    const tbody = document.getElementById('customersTableBody');
+    if (!tbody) return;
 
     fetch('http://localhost:3000/api/admin-customers')
         .then(response => response.json())
         .then(res => {
             if (!res.success || !res.customers) return;
 
-            container.innerHTML = '';
+            tbody.innerHTML = '';
 
             if (res.customers.length === 0) {
-                container.innerHTML = '<p>Zatím žádní zákazníci.</p>';
+                tbody.innerHTML = '<tr><td colspan="6">Zatím žádní zákazníci.</td></tr>';
                 return;
             }
 
             res.customers.forEach(c => {
-                const card = document.createElement('div');
-                card.className = 'customer-card'; // Můžeš si nastylovat v CSS
+                const tr = document.createElement('tr');
 
-                card.innerHTML = `
-                    <div class="customer-details">
-                        <strong>${c.client_name || ''} ${c.client_surname || ''}</strong>
-                        <span>📞 ${c.client_phone || 'Neuvedeno'}</span>
-                        <span>✉️ ${c.client_email || 'Neuvedeno'}</span>
-                    </div>
-                    <div class="customer-count">
-                        Počet objednávek: <strong>${c.order_count}</strong>
-                    </div>
+                // Formátování data posledního pronájmu
+                let formattedLastDate = 'Neuvedeno';
+                if (c.last_rental_date) {
+                    const dateObj = new Date(c.last_rental_date);
+                    formattedLastDate = dateObj.toLocaleDateString('cs-CZ', { 
+                        day: 'numeric', 
+                        month: 'numeric', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
+
+                tr.innerHTML = `
+                    <td><strong>${c.order_count}</strong></td>
+                    <td>${c.name || ''}</td>
+                    <td>${c.surname || ''}</td>
+                    <td>${c.email || 'Neuvedeno'}</td>
+                    <td>${c.phone || 'Neuvedeno'}</td>
+                    <td>${formattedLastDate}</td>
                 `;
 
-                container.appendChild(card);
+                tbody.appendChild(tr);
             });
         })
         .catch(err => console.error("Chyba při načítání zákazníků:", err));

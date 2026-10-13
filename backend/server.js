@@ -383,10 +383,16 @@ app.get('/api/admin-reservations', async (req, res) => {
 app.get('/api/admin-customers', async (req, res) => {
     try {
         const [rows] = await pool.query(`
-            SELECT name, surname, email, phone, COUNT(*) AS order_count
-            FROM reservations
-            GROUP BY email, name, surname, phone
-            ORDER BY order_count DESC
+            SELECT r.name, r.surname, 
+                   MAX(r.email) AS email, 
+                   MAX(r.phone) AS phone, 
+                   COUNT(*) AS order_count,
+                   MAX(e.start) AS last_rental_date
+            FROM reservations r
+            LEFT JOIN events e ON r.event_id = e.id
+            WHERE r.name IS NOT NULL AND r.surname IS NOT NULL
+            GROUP BY r.name, r.surname
+            ORDER BY order_count DESC, r.surname ASC, r.name ASC
         `);
         res.json({ success: true, customers: rows });
     } catch (err) {
