@@ -84,20 +84,21 @@
             <section id="adminContent" class="box_glass_effect">
                 <div class="wrapper">
                     
-                    <section id="dashboard" class="content active text">
-                        <div class="segment">
-                            <p>Rozpis vyplněný do: <span id="endEventsDate"></span></p>
-                        </div>
-                        <div class="segment">
-                            <p>Počet všech bloků k pronájmu: <span id="countAllRentDates"></span></p>
-                            <p>Počet volných bloků k pronájmu: <span id="countFreeRentDates"></span></p>
-                            <p>Počet obsazených bloků k pronájmu: <span id="countRentedDates"></span></p>
+                    <section id="dashboard" class="content active text segment">
+                        <h2 class="title">Přehled</h2>
+                        <div class="dashboardContainer">
+                            <div class="segment">
+                                <p>Rozpis vyplněný do: <span id="endEventsDate"></span></p>
+                                <p>Počet všech bloků k pronájmu: <span id="countAllRentDates"></span></p>
+                                <p>Počet volných bloků k pronájmu: <span id="countFreeRentDates"></span></p>
+                                <p>Počet obsazených bloků k pronájmu: <span id="countRentedDates"></span></p>
+                            </div>
                         </div>
                     </section>
 
                     <section id="events" class="content">
                         <div class="events_form_container">
-                            <h2 class="title">Vkládání událostí do kalendáře</h2>
+                            <h2 class="title">Správa událostí</h2>
                             <form id="insertEventsForm" class="text">
                                 <div class="form_group">
                                     <label>Událost: </label>
@@ -147,19 +148,22 @@
                         <div id="calendar" class="box_glass_effect"></div>
                     </section>
 
-                    <section id="reservations" class="content">
+                    <section id="reservations" class="content segment">
+                        <h2 class="title">Seznam rezervací</h2>
                         <div id="reservationsList">
                             
                         </div>
                     </section>
 
-                    <section id="inbox" class="content">
+                    <section id="inbox" class="content segment">
+                        <h2 class="title">Seznam zpráv</h2>
                         <div id="messagesContainer" class="segment">
                             
                         </div>
                     </section>
 
-                    <section id="customers" class="content">
+                    <section id="customers" class="content segment">
+                        <h2 class="title">Seznam zákazníků</h2>
                         <div class="table-responsive">
                             <table class="admin-table">
                                 <thead>
@@ -178,6 +182,7 @@
                             </table>
                         </div>
                     </section>
+                    
                 </div>
             </section>
         </div>
