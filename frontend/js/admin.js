@@ -157,12 +157,12 @@ function initCalendar() {
             document.getElementById("eventStart").value = info.event.startStr.slice(0, 16);
             document.getElementById("eventEnd").value = info.event.endStr ? info.event.endStr.slice(0, 16) : "";
 
-            document.getElementById("submitBtn").textContent = "Potvrdit změny";
+            document.getElementById("submitBtn").title = "Potvrdit změny";
             
             if (currentEventIsBooked) {
-                deleteBtn.textContent = "Zrušit rezervaci";
+                deleteBtn.title = "Zrušit rezervaci";
             } else {
-                deleteBtn.textContent = "Odstranit událost";
+                deleteBtn.title = "Odstranit událost";
             }
 
             deleteBtn.style.display = "inline-block";

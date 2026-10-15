@@ -318,7 +318,12 @@ main {
 }
 
 .form_buttons button {
-    width: 100%;
+    color: white;
+    padding: 1rem;
+    font-size: 1.5rem;
+    border-radius: 100%;
+    width: 60px;
+    height: 60px;
 }
 /*
     END - EVENTS CONTENT

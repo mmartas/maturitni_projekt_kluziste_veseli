@@ -232,7 +232,6 @@ function resetFormMode() {
     document.querySelectorAll(".clientInfo").forEach(element => {
         element.classList.remove("active");
     })
-    submitBtn.textContent = "Přidat událost";
     deleteBtn.style.display = "none";
     cancelBtn.style.display = "none";
 }

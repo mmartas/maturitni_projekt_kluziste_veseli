@@ -10,8 +10,24 @@
     --dark-background-rgb: rgb(36, 36, 36);
     --glass-background: rgba(36, 36, 36, 0.2);
 
+    /* Zelená paleta */
+    --green-color-lighter: #34FE4E;
+    --green-color: #1FB933;
+    --green-color-shadow-01: rgba(31, 185, 51, 0.2);
+
+    /* Modrá paleta */
+    --blue-color-lighter: #344EFE;
+    --blue-color: #1F33B9;
+    --blue-color-shadow-01: rgba(31, 51, 185, 0.2);
+
     --red-inner-shadow: inset -20px -20px 20px var(--red-color-shadow-01),
                         inset 20px 20px 20px var(--red-color-shadow-01);
+
+    --green-inner-shadow: inset -20px -20px 20px var(--green-color-shadow-01),
+                        inset 20px 20px 20px var(--green-color-shadow-01);
+
+    --blue-inner-shadow: inset -20px -20px 20px var(--blue-color-shadow-01),
+                        inset 20px 20px 20px var(--blue-color-shadow-01);
 }
 
 html {
@@ -47,6 +63,24 @@ body {
     border: 1px solid var(--red-color);
     box-shadow: inset -20px -20px 20px var(--red-color-shadow-01),
                 inset 20px 20px 20px var(--red-color-shadow-01);
+}
+
+.box_glass_effect_green {
+    background: var(--glass-background);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--green-color);
+    box-shadow: inset -20px -20px 20px var(--green-color-shadow-01),
+                inset 20px 20px 20px var(--green-color-shadow-01);
+}
+
+.box_glass_effect_blue {
+    background: var(--glass-background);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--blue-color);
+    box-shadow: inset -20px -20px 20px var(--blue-color-shadow-01),
+                inset 20px 20px 20px var(--blue-color-shadow-01);
 }
 
 .text_color_gradient {
