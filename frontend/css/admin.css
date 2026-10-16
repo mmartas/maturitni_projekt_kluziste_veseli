@@ -324,6 +324,209 @@ main {
     border-radius: 100%;
     width: 60px;
     height: 60px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+#submitBtn:hover {
+    background-color: var(--green-color);
+}
+#deleteBtn:hover {
+    background-color: var(--red-color);
+}
+#cancelBtn:hover {
+    background-color: var(--blue-color);
+}
+.fc-printButton-button::before {
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    content: "\f02f"; /* Unicode kód pro ikonu fa-print */
+}
+
+@media print {
+    /* 1. Nulové okraje A4 na šířku */
+    @page {
+        size: A4 landscape;
+        margin: 5mm;
+    }
+
+    /* 2. Skrytí nepotřebných částí adminu a hlavičky kalendáře */
+    #adminMenuWrapper,
+    .events_form_container,
+    #dashboard,
+    #reservations,
+    #inbox,
+    #customers,
+    .fc-header-toolbar {
+        display: none !important;
+    }
+
+    /* 3. Zrušení pozadí, stínů a okrajů u všech obalů */
+    html, 
+    body, 
+    main, 
+    .admin_main_container, 
+    #adminContent, 
+    .wrapper, 
+    #events, 
+    .box_glass_effect {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    /* 4. Kontejnery kalendáře na 100 % šířky */
+    #calendar,
+    .fc,
+    .fc-view-harness,
+    .fc-timegrid,
+    .fc-scrollgrid,
+    .fc-scrollgrid-section,
+    .fc-scrollgrid-section-header,
+    .fc-scrollgrid-section-body,
+    .fc-scrollgrid-section > td,
+    .fc-scroller-harness,
+    .fc-scroller,
+    .fc-col-header,
+    .fc-timegrid-body,          
+    .fc-timegrid-slots,
+    .fc-timegrid-cols {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+
+    /* 5. Vynucení fixního tabulkového rozvržení na 100 % */
+    .fc table,
+    .fc-scrollgrid-table,
+    .fc-col-header table,
+    .fc-scrollgrid-sync-table,
+    .fc-timegrid-slots table,
+    .fc-timegrid-cols table {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+    }
+
+    /* 6. PŘEPSÁNÍ HTML <col> ZNAČEK
+       První sloupec (časová osa 6-22h) = přesně 45px */
+    .fc col:first-child,
+    .fc col.fc-timegrid-axis-col,
+    .fc-timegrid-axis,
+    .fc-scrollgrid-shrink {
+        width: 45px !important;
+        min-width: 45px !important;
+        max-width: 45px !important;
+    }
+
+    /* Každý ze 7 dnů v hlavičce i těle dostane přesně 1/7 ze zbývajícího prostoru */
+    .fc col:not(:first-child):not(.fc-timegrid-axis-col) {
+        width: calc((100% - 45px) / 7) !important;
+    }
+
+    .fc-col-header-cell,
+    .fc-timegrid-col {
+        width: calc((100% - 45px) / 7) !important;
+        max-width: calc((100% - 45px) / 7) !important;
+    }
+
+    /* Mřížka řádků hodin */
+    .fc-timegrid-slot-label {
+        width: 45px !important;
+        max-width: 45px !important;
+    }
+
+    .fc-timegrid-slot-lane {
+        width: calc(100% - 45px) !important;
+    }
+
+    /* 7. HLAVIČKA A TĚLO DNEŠNÍHO DNE:
+       Sjednocení hlavičky na šedou a nastavení průhledného těla pro zachování mřížky dole */
+    .fc-col-header-cell {
+        background-color: #f8f9fa !important;
+    }
+
+    .fc .fc-col-header-cell.fc-day-today,
+    .fc-col-header-cell.fc-day-today {
+        background-color: #f8f9fa !important;
+        background-image: none !important;
+        border-top: 1px solid #ddd !important;
+    }
+
+    .fc-col-header-cell.fc-day-today::before,
+    .fc-col-header-cell.fc-day-today::after,
+    .fc-col-header-cell.fc-day-today * {
+        background: none !important;
+        background-image: none !important;
+        border-top: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Průhledné tělo dneška zaručí, že nezakryje mřížku v řádku 22 */
+    .fc-timegrid-col.fc-day-today {
+        background: transparent !important;
+        background-color: transparent !important;
+        background-image: none !important;
+    }
+
+    /* Vynucení vykreslení všech hraničních čar mřížky */
+    .fc td, 
+    .fc th, 
+    .fc-timegrid-slot, 
+    .fc-timegrid-col {
+        border-color: #e0e0e0 !important;
+    }
+
+    /* 8. Výška slotů a písmo tak, aby se celý den vešel na 1 A4 na výšku */
+    .fc {
+        font-size: 11px !important;
+    }
+
+    .fc-timegrid-slot {
+        height: 45px !important; 
+    }
+
+    .fc-timegrid-slot-label-frame {
+        text-align: center !important;
+    }
+
+    .fc-event {
+        font-size: 11px !important;
+        padding: 2px 4px !important;
+    }
+
+    /* Odstranění vnitřního skrolování a posuvníků */
+    .fc-scroller,
+    .fc-scroller-liquid-absolute {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        position: static !important;
+    }
+
+    ::-webkit-scrollbar,
+    .fc-scroller::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    /* Vynucení tisku barev bloků událostí */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
 }
 /*
     END - EVENTS CONTENT

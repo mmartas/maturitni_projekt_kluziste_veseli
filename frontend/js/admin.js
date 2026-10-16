@@ -98,8 +98,18 @@ function initCalendar() {
 
         dayMaxEvents: 3,
 
+        // 1. Definice vlastního tlačítka
+        customButtons: {
+            printButton: {
+            text: "",
+            click: function() {
+                window.print(); // Spustí tiskový dialog prohlížeče
+            }
+            }
+        },
+
         headerToolbar: {
-            left: 'prev,next today',
+            left: 'prev,next today printButton',
             center: 'title',
             right: 'timeGridDay,timeGridWeek,dayGridMonth'
         },
