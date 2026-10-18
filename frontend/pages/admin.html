@@ -22,6 +22,9 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales-all.global.min.js"></script>
 
+    <!-- Chart.js-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 <body>
     <main>
@@ -87,6 +90,12 @@
                     <section id="dashboard" class="content active text segment">
                         <h2 class="title">Přehled</h2>
                         <div class="dashboardContainer">
+                            <div class="chart_card">
+                                <h3>Vytíženost bloků k pronájmu</h3>
+                                <div class="chart_box">
+                                    <canvas id="blocksDoughnutChart"></canvas>
+                                </div>
+                            </div>
                             <div class="segment">
                                 <p>Rozpis vyplněný do: <span id="endEventsDate"></span></p>
                                 <p>Počet všech bloků k pronájmu: <span id="countAllRentDates"></span></p>

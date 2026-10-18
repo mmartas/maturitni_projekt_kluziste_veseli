@@ -241,6 +241,101 @@ function initCalendar() {
     calendarInitialized = true;
 }
 
+// 1. Načtení CSS proměnné z :root (document.documentElement)
+const greenColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--green-color')
+    .trim();
+
+// Příklad s případnou další proměnnou (např. pro červenou)
+const redColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--red-color')
+    .trim() || '#dc3545';
+
+// Načtení pluginu pro zobrazení textu/procent přímo v grafu (volitelné, jinak funguje v tooltipu)
+function renderBlocksChart(totalBlocks, freeBlocks, occupiedBlocks) {
+    const ctx = document.getElementById('blocksDoughnutChart').getContext('2d');
+
+    // Výpočet procent (ošetření dělení nulou, pokud je celkový počet 0)
+    const freePercent = totalBlocks > 0 ? ((freeBlocks / totalBlocks) * 100).toFixed(1) : 0;
+    const occupiedPercent = totalBlocks > 0 ? ((occupiedBlocks / totalBlocks) * 100).toFixed(1) : 0;
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: [
+                `Volné bloky (${freePercent} %)`, 
+                `Obsazené bloky (${occupiedPercent} %)`
+            ],
+            datasets: [{
+                data: [freeBlocks, occupiedBlocks],
+                backgroundColor: [
+                    greenColor, // Zelená pro volné bloky
+                    redColor  // Červená pro obsazené bloky
+                ],
+                borderWidth: 2,
+                borderColor: '#1e1e1e' // Slaďeno s tmavým pozadím
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%', // Vytvoří jemný prstenec
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#ffffff',
+                        font: { size: 13 },
+                        boxWidth: 12,
+                        boxHeight: 12
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function() {
+                            return ''; // Skryje horní nadpisový řádek
+                        },
+                        label: function(context) {
+                            const value = context.raw || 0;
+                            const percentage = totalBlocks > 0 ? ((value / totalBlocks) * 100).toFixed(1) : 0;
+                            return ` ${context.label.split('(')[0].trim()}: ${value} z ${totalBlocks} (${percentage} %)`;
+                        }
+                    }
+                }
+            }
+        },
+        // Custom plugin pro zobrazení celkového počtu uprostřed prstence
+        plugins: [{
+            id: 'centerText',
+            beforeDraw: function(chart) {
+                const width = chart.width;
+                const height = chart.height;
+                const ctx = chart.ctx;
+                ctx.restore();
+
+                const fontSize = (height / 114).toFixed(2);
+                ctx.font = `bold ${fontSize}em sans-serif`;
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#ffffff';
+
+                const text = `${totalBlocks}`;
+                const textX = Math.round((width - ctx.measureText(text).width) / 2);
+                const textY = height / 2 - 10;
+                ctx.fillText(text, textX, textY);
+
+                ctx.font = '11px sans-serif';
+                ctx.fillStyle = '#aaaaaa';
+                const subText = 'Počet všech bloků k pronájmu';
+                const subTextX = Math.round((width - ctx.measureText(subText).width) / 2);
+                ctx.fillText(subText, subTextX, textY + 22);
+
+                ctx.save();
+            }
+        }]
+    });
+}
+
+
 // pole, které propojuje ikonu, textový odkaz a obsah v celém admin panelu
 const navItems = [
     { icon: dashboardIcon, content: dashboardContent },
@@ -269,6 +364,7 @@ function showSection(item) {
     .then(response => response.json())
     .then(res => {
         if (res.success) {
+            renderBlocksChart(res.allCount, res.freeCount, res.bookedCount);
             // Okamžitě aktualizujeme čísla v dashboardu (ve tvaru "volné / celkem")
             if (countAllRentDates) countAllRentDates.textContent = res.allCount;
             if (countFreeRentDates) countFreeRentDates.textContent = `${res.freeCount} / ${res.allCount}`;

@@ -644,3 +644,27 @@ main {
 /*
     END - CUSTOMERS CONTENT
 */
+
+
+
+.chart_card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    width: 100%;
+    max-width: 420px;
+}
+
+.chart_card h3 {
+    color: #ffffff;
+    font-size: 16px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.chart_box {
+    position: relative;
+    height: 260px;
+    width: 100%;
+}
