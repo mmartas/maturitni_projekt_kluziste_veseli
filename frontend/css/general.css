@@ -1,14 +1,18 @@
 :root {
     --white-color: #fff;
     --white-color-shadow-01: rgba(255,255,255,0.1);
-    --red-color-lighter: #FE344E;
-    --red-color: #B91F33;
-    --red-color-shadow-01: rgba(185, 31, 51, 0.2);
+    
+    
     --main-background: #242424;
 
     --glass-border: rgba(255, 255, 255, 0.3);
     --dark-background-rgb: rgb(36, 36, 36);
     --glass-background: rgba(36, 36, 36, 0.2);
+
+    /* Červená paleta*/
+    --red-color-lighter: #FE344E;
+    --red-color: #B91F33;
+    --red-color-shadow-01: rgba(185, 31, 51, 0.2);
 
     /* Zelená paleta */
     --green-color-lighter: #34FE4E;
@@ -19,6 +23,11 @@
     --blue-color-lighter: #344EFE;
     --blue-color: #1F33B9;
     --blue-color-shadow-01: rgba(31, 51, 185, 0.2);
+
+    /* Žlutá paleta */
+    --yellow-color-lighter: #FEFE4E;
+    --yellow-color: #B9B933;
+    --yellow-color-shadow-01: rgba(185, 185, 51, 0.2);
 
     --red-inner-shadow: inset -20px -20px 20px var(--red-color-shadow-01),
                         inset 20px 20px 20px var(--red-color-shadow-01);

@@ -243,13 +243,21 @@ function initCalendar() {
 
 // 1. Načtení CSS proměnné z :root (document.documentElement)
 const greenColor = getComputedStyle(document.documentElement)
-    .getPropertyValue('--green-color')
+    .getPropertyValue('--green-color-lighter')
     .trim();
 
 // Příklad s případnou další proměnnou (např. pro červenou)
 const redColor = getComputedStyle(document.documentElement)
-    .getPropertyValue('--red-color')
+    .getPropertyValue('--red-color-lighter')
     .trim() || '#dc3545';
+
+const blueColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--blue-color-lighter')
+    .trim();
+
+const yellowColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--yellow-color-lighter')
+    .trim();
 
 // Načtení pluginu pro zobrazení textu/procent přímo v grafu (volitelné, jinak funguje v tooltipu)
 function renderBlocksChart(totalBlocks, freeBlocks, occupiedBlocks) {
@@ -263,8 +271,8 @@ function renderBlocksChart(totalBlocks, freeBlocks, occupiedBlocks) {
         type: 'doughnut',
         data: {
             labels: [
-                `Volné bloky (${freePercent} %)`, 
-                `Obsazené bloky (${occupiedPercent} %)`
+                `Volné bloky ${freeBlocks}/${totalBlocks} ${freePercent} %`, 
+                `Obsazené bloky ${occupiedBlocks}/${totalBlocks} ${occupiedPercent} %`
             ],
             datasets: [{
                 data: [freeBlocks, occupiedBlocks],
@@ -298,7 +306,7 @@ function renderBlocksChart(totalBlocks, freeBlocks, occupiedBlocks) {
                         label: function(context) {
                             const value = context.raw || 0;
                             const percentage = totalBlocks > 0 ? ((value / totalBlocks) * 100).toFixed(1) : 0;
-                            return ` ${context.label.split('(')[0].trim()}: ${value} z ${totalBlocks} (${percentage} %)`;
+                            return ` ${context.label.split('(')[0].trim()}`;
                         }
                     }
                 }
@@ -320,7 +328,7 @@ function renderBlocksChart(totalBlocks, freeBlocks, occupiedBlocks) {
 
                 const text = `${totalBlocks}`;
                 const textX = Math.round((width - ctx.measureText(text).width) / 2);
-                const textY = height / 2 - 10;
+                const textY = height / 2 - 25;
                 ctx.fillText(text, textX, textY);
 
                 ctx.font = '11px sans-serif';
@@ -333,6 +341,63 @@ function renderBlocksChart(totalBlocks, freeBlocks, occupiedBlocks) {
             }
         }]
     });
+}
+
+function loadEventTypesChart() {
+    fetch('http://localhost:3000/api/admin-event-types-stats')
+        .then(response => response.json())
+        .then(res => {
+            if (!res.success || !res.stats) return;
+
+            // Zpracování dat z databáze (převedeme pole na objekt pro snazší přístup)
+            const statsMap = {};
+            res.stats.forEach(item => {
+                statsMap[item.type] = item.count;
+            });
+
+            // Definuj hodnoty podle toho, jaké názvy typů používáš v DB
+            // (např. 'rent', 'school', 'public' - uprav si podle sebe)
+            const rentCount = statsMap['rent'] || 0;
+            const schoolCount = statsMap['school'] || 0;
+            const publicCount = statsMap['public'] || 0;
+
+            const ctx = document.getElementById('eventTypesChart').getContext('2d');
+            
+            // Pokud už graf existuje, před vykreslením nového ho zničíme
+            if (window.eventTypesChartInstance) {
+                window.eventTypesChartInstance.destroy();
+            }
+
+            window.eventTypesChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pronájmy', 'Školní akce', 'Veřejné bruslení'],
+                    datasets: [{
+                        data: [rentCount, schoolCount, publicCount],
+                        backgroundColor: [
+                            greenColor, 
+                            blueColor, 
+                            yellowColor
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#ffffff',
+                                font: { size: 12 }
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(err => console.error("Chyba při načítání statistik typů událostí:", err));
 }
 
 
@@ -357,6 +422,8 @@ function showSection(item) {
     if (item.content.id) {
         window.location.hash = item.content.id;
     }
+
+    loadEventTypesChart();
 
     fetch('http://localhost:3000/api/update-counts', {
         method: 'POST'

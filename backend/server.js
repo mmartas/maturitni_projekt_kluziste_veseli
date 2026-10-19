@@ -400,3 +400,18 @@ app.get('/api/admin-customers', async (req, res) => {
         res.status(500).json({ error: "Chyba serveru" });
     }
 });
+
+app.get('/api/admin-event-types-stats', async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT type, COUNT(*) AS count
+            FROM events
+            WHERE start >= CURDATE()
+            GROUP BY type
+        `);
+        res.json({ success: true, stats: rows });
+    } catch (err) {
+        console.error("Chyba při načítání statistik typů událostí:", err);
+        res.status(500).json({ error: "Chyba serveru" });
+    }
+});

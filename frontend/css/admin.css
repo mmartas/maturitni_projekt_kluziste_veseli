@@ -183,6 +183,16 @@ main {
 */
 
 /*
+    START - DASHBOARD CONTENT
+*/
+.dashboardContainer {
+    display: flex;
+}
+
+/*
+    END - DASHBOARD CONTENT
+*/
+/*
     START - INBOX CONTENT
 */
 .one_message {
