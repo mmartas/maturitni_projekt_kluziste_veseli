@@ -187,6 +187,7 @@ main {
 */
 .dashboardContainer {
     display: flex;
+    gap: 1rem;
 }
 
 /*
@@ -664,6 +665,10 @@ main {
     padding: 20px;
     width: 100%;
     max-width: 420px;
+    transition: all 0.3s ease-in-out;
+}
+.chart_card:hover {
+    transform: scale(1.015);
 }
 
 .chart_card h3 {
