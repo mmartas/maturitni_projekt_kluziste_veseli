@@ -403,12 +403,27 @@ app.get('/api/admin-customers', async (req, res) => {
 
 app.get('/api/admin-event-types-stats', async (req, res) => {
     try {
-        const [rows] = await pool.query(`
+        const { startDate, endDate } = req.query;
+        
+        let query = `
             SELECT type, COUNT(*) AS count
             FROM events
-            WHERE start >= CURDATE()
-            GROUP BY type
-        `);
+            WHERE 1=1
+        `;
+        const params = [];
+
+        if (startDate) {
+            query += ` AND start >= ?`;
+            params.push(startDate);
+        }
+        if (endDate) {
+            query += ` AND start <= ?`;
+            params.push(endDate + ' 23:59:59'); // Zahrne celý koncový den
+        }
+
+        query += ` GROUP BY type`;
+
+        const [rows] = await pool.query(query, params);
         res.json({ success: true, stats: rows });
     } catch (err) {
         console.error("Chyba při načítání statistik typů událostí:", err);

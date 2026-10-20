@@ -362,9 +362,26 @@ function loadBlocksChart() {
     .catch(err => console.error("Chyba při načítání prvního grafu:", err));
 }
 
-// 2. Druhý graf (typy událostí) - změněn na koláčový graf (type: 'pie')
+// Pomocná funkce pro získání vybraných dat z inputů
+function getChartDateRangeParams() {
+    const startInput = document.getElementById('chartStartDate');
+    const endInput = document.getElementById('chartEndDate');
+    
+    let params = '';
+    if (startInput && startInput.value) {
+        params += `?startDate=${startInput.value}`;
+    }
+    if (endInput && endInput.value) {
+        params += params ? `&endDate=${endInput.value}` : `?endDate=${endInput.value}`;
+    }
+    return params;
+}
+
+// Úprava funkce pro druhý graf (typy událostí)
 function loadEventTypesChart() {
-    fetch('http://localhost:3000/api/admin-event-types-stats')
+    const queryParams = getChartDateRangeParams();
+
+    fetch(`http://localhost:3000/api/admin-event-types-stats${queryParams}`)
         .then(response => response.json())
         .then(res => {
             if (!res.success || !res.stats) return;
@@ -385,16 +402,12 @@ function loadEventTypesChart() {
             }
 
             window.eventTypesChartInstance = new Chart(ctx, {
-                type: 'pie', // Změněno z 'doughnut' na klasický koláčový graf 'pie'
+                type: 'pie',
                 data: {
                     labels: ['Pronájmy', 'Školní akce', 'Veřejné bruslení'],
                     datasets: [{
                         data: [rentCount, schoolCount, publicCount],
-                        backgroundColor: [
-                            greenColor, 
-                            blueColor, 
-                            yellowColor
-                        ],
+                        backgroundColor: [greenColor, blueColor, yellowColor],
                         borderWidth: 0
                     }]
                 },
@@ -409,7 +422,8 @@ function loadEventTypesChart() {
                                 font: { size: 12 },
                                 boxHeight: 12,
                                 boxWidth: 12
-                            }
+                            },
+                            
                         }
                     }
                 }
@@ -417,6 +431,18 @@ function loadEventTypesChart() {
         })
         .catch(err => console.error("Chyba při načítání statistik typů událostí:", err));
 }
+
+// Přidání event listeneru na tlačítko filtrování
+document.addEventListener("DOMContentLoaded", () => {
+    const filterBtn = document.getElementById('filterChartsBtn');
+    if (filterBtn) {
+        filterBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            loadBlocksChart();
+            loadEventTypesChart();
+        });
+    }
+});
 
 
 // pole, které propojuje ikonu, textový odkaz a obsah v celém admin panelu
