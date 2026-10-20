@@ -32,10 +32,6 @@ const bookedClientName = document.getElementById("bookedClientName");
 const clientInfo = document.querySelectorAll(".clientInfo");
 let adminBookedClientName = document.getElementById("adminBookedClientName");
 
-const countAllRentDates = document.getElementById("countAllRentDates");
-const countFreeRentDates = document.getElementById("countFreeRentDates");
-const countRentedDates = document.getElementById("countRentedDates");
-
 let changeEventTitle = document.getElementById("eventTitle");
 
 let savedLimitDate = null; // Globální proměnná pro uložení limitu
@@ -65,6 +61,12 @@ adminRefreshArrow.addEventListener("click", (e) => {
     }, 200);
 })
 
+function addOneDay(dateStr) {
+    const d = new Date(dateStr);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+}
+
 function initCalendar() {
     if (calendarInitialized) {
         if (calendar) {
@@ -85,7 +87,7 @@ function initCalendar() {
         height: '100%',
 
         validRange: {
-            end: savedLimitDate ? savedLimitDate : undefined
+            end: savedLimitDate ? addOneDay(savedLimitDate) : undefined
         },
 
         dayHeaderDidMount: function(info) {
@@ -259,125 +261,140 @@ const yellowColor = getComputedStyle(document.documentElement)
     .getPropertyValue('--yellow-color-lighter')
     .trim();
 
-// 1. První graf (bloky) - sám si obstará fetch, vykreslení i aktualizaci textů v dashboardu
-function loadBlocksChart() {
-    fetch('http://localhost:3000/api/update-counts', {
-        method: 'POST'
-    })
-    .then(response => response.json())
-    .then(res => {
-        if (!res.success) return;
-
-        const totalBlocks = res.allCount;
-        const freeBlocks = res.freeCount;
-        const occupiedBlocks = res.bookedCount;
-
-        const freePercent = totalBlocks > 0 ? ((freeBlocks / totalBlocks) * 100).toFixed(1) : 0;
-        const occupiedPercent = totalBlocks > 0 ? ((occupiedBlocks / totalBlocks) * 100).toFixed(1) : 0;
-
-        const ctx = document.getElementById('blocksDoughnutChart').getContext('2d');
-
-        // Pokud už graf existuje, před vykreslením nového ho zničíme
-        if (window.blocksChartInstance) {
-            window.blocksChartInstance.destroy();
-        }
-
-        window.blocksChartInstance = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: [
-                    `Volné ${freeBlocks}/${totalBlocks} ${freePercent} %`, 
-                    `Obsazené ${occupiedBlocks}/${totalBlocks} ${occupiedPercent} %`
-                ],
-                datasets: [{
-                    data: [freeBlocks, occupiedBlocks],
-                    backgroundColor: [greenColor, redColor],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: '#ffffff',
-                            font: { size: 13 },
-                            boxWidth: 12,
-                            boxHeight: 12
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            title: function() { return ''; },
-                            label: function(context) {
-                                return ` ${context.label.split('(')[0].trim()}`;
-                            }
-                        }
-                    }
-                }
-            },
-            plugins: [{
-                id: 'centerText',
-                beforeDraw: function(chart) {
-                    const width = chart.width;
-                    const height = chart.height;
-                    const ctx = chart.ctx;
-                    ctx.restore();
-
-                    const fontSize = (height / 114).toFixed(2);
-                    ctx.font = `bold ${fontSize}em sans-serif`;
-                    ctx.textBaseline = 'middle';
-                    ctx.fillStyle = '#ffffff';
-
-                    const text = `${totalBlocks}`;
-                    const textX = Math.round((width - ctx.measureText(text).width) / 2);
-                    const textY = height / 2 - 15;
-                    ctx.fillText(text, textX, textY);
-
-                    ctx.save();
-                }
-            }]
-        });
-
-        // Aktualizace textů a statistik v dashboardu
-        if (countAllRentDates) countAllRentDates.textContent = res.allCount;
-        if (countFreeRentDates) countFreeRentDates.textContent = `${res.freeCount} / ${res.allCount}`;
-        if (countRentedDates) countRentedDates.textContent = `${res.bookedCount} / ${res.allCount}`;
-
-        // Aktualizace limitního data
-        if (res.limitDate) {
-            savedLimitDate = res.limitDate.split('T')[0];
-            if (limitDateInput) limitDateInput.value = savedLimitDate;
-
-            const [year, month, day] = savedLimitDate.split('-');
-            const formattedDate = `${day}.${month}.${year}`;
-            
-            if (dashboardLimitDate) {
-                dashboardLimitDate.innerHTML = formattedDate;
-            }
-        }
-    })
-    .catch(err => console.error("Chyba při načítání prvního grafu:", err));
-}
-
-// Pomocná funkce pro získání vybraných dat z inputů
+// Pomocná funkce pro získání parametrů z nových filtrovacích inputů
 function getChartDateRangeParams() {
-    const startInput = document.getElementById('chartStartDate');
-    const endInput = document.getElementById('chartEndDate');
-    
-    let params = '';
-    if (startInput && startInput.value) {
-        params += `?startDate=${startInput.value}`;
+    const startInput = document.getElementById('filterStartDate')?.value;
+    const endInput = document.getElementById('filterEndDate')?.value;
+    const seasonSelect = document.getElementById('filterSeason')?.value;
+    const monthSelect = document.getElementById('filterMonth')?.value;
+
+    let startDate = startInput;
+    let endDate = endInput;
+
+    // 1. Pokud uživatel vybral celou sezónu
+    if (seasonSelect === '2026/2027') {
+        startDate = '2026-10-01';
+        endDate = '2027-04-30';
     }
-    if (endInput && endInput.value) {
-        params += params ? `&endDate=${endInput.value}` : `?endDate=${endInput.value}`;
+    // 2. Pokud uživatel vybral konkrétní měsíc
+    else if (monthSelect) {
+        // Určíme rok podle měsíce (zimní/jarní měsíce patří do 2027, podzimní do 2026)
+        let year = ['10', '11', '12'].includes(monthSelect) ? '2026' : '2027';
+        let m = monthSelect.padStart(2, '0');
+        
+        // Zjistíme poslední den v daném měsíci automaticky
+        let lastDay = new Date(year, monthSelect, 0).getDate();
+        
+        startDate = `${year}-${m}-01`;
+        endDate = `${year}-${m}-${lastDay}`;
+    }
+
+    // Sestavení query stringu pro API požadavky
+    let params = '';
+    if (startDate && endDate) {
+        params = `?startDate=${startDate}&endDate=${endDate}`;
     }
     return params;
 }
 
-// Úprava funkce pro druhý graf (typy událostí)
+// 1. První graf (bloky)
+function loadBlocksChart() {
+    const queryParams = getChartDateRangeParams();
+
+    fetch(`http://localhost:3000/api/admin-blocks-stats${queryParams}`)
+        .then(response => response.json())
+        .then(res => {
+            if (!res.success) return;
+
+            // Nastavení výchozích hodnot do inputů, pokud jsou prázdné
+            const startInput = document.getElementById('chartStartDate');
+            const endInput = document.getElementById('chartEndDate');
+            
+            if (startInput && !startInput.value) startInput.value = res.defaultStart;
+            if (endInput && !endInput.value) endInput.value = res.defaultEnd; // Tady se teď správně doplní limitDate!
+
+            const totalBlocks = res.allCount;
+            const freeBlocks = res.freeCount;
+            const occupiedBlocks = res.bookedCount;
+
+            const freePercent = totalBlocks > 0 ? ((freeBlocks / totalBlocks) * 100).toFixed(1) : 0;
+            const occupiedPercent = totalBlocks > 0 ? ((occupiedBlocks / totalBlocks) * 100).toFixed(1) : 0;
+
+            const ctx = document.getElementById('blocksDoughnutChart').getContext('2d');
+
+            if (window.blocksChartInstance) {
+                window.blocksChartInstance.destroy();
+            }
+
+            window.blocksChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [
+                        `Volné ${freeBlocks}/${totalBlocks} ${freePercent} %`, 
+                        `Obsazené ${occupiedBlocks}/${totalBlocks} ${occupiedPercent} %`
+                    ],
+                    datasets: [{
+                        data: [freeBlocks, occupiedBlocks],
+                        backgroundColor: [greenColor, redColor],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#ffffff', font: { size: 13 }, boxWidth: 12, boxHeight: 12 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function() { return ''; },
+                                label: function(context) {
+                                    return ` ${context.label.split('(')[0].trim()}`;
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'centerText',
+                    beforeDraw: function(chart) {
+                        const width = chart.width;
+                        const height = chart.height;
+                        const ctx = chart.ctx;
+                        ctx.restore();
+
+                        const fontSize = (height / 114).toFixed(2);
+                        ctx.font = `bold ${fontSize}em sans-serif`;
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = '#ffffff';
+
+                        const text = `${totalBlocks}`;
+                        const textX = Math.round((width - ctx.measureText(text).width) / 2);
+                        const textY = height / 2 - 15;
+                        ctx.fillText(text, textX, textY);
+                        ctx.save();
+                    }
+                }]
+            });
+
+            if (res.limitDate) {
+                savedLimitDate = res.limitDate.split('T')[0];
+                if (limitDateInput) limitDateInput.value = savedLimitDate;
+
+                const [year, month, day] = savedLimitDate.split('-');
+                const formattedDate = `${day}.${month}.${year}`;
+                
+                if (dashboardLimitDate) {
+                    dashboardLimitDate.innerHTML = formattedDate;
+                }
+            }
+        })
+        .catch(err => console.error("Chyba při načítání prvního grafu:", err));
+}
+
+// 2. Druhý graf (typy událostí)
 function loadEventTypesChart() {
     const queryParams = getChartDateRangeParams();
 
@@ -385,6 +402,13 @@ function loadEventTypesChart() {
         .then(response => response.json())
         .then(res => {
             if (!res.success || !res.stats) return;
+
+            // Pojistka pro vyplnění inputů i z tohoto grafu, pokud by první doběhl později
+            const startInput = document.getElementById('chartStartDate');
+            const endInput = document.getElementById('chartEndDate');
+            
+            if (startInput && !startInput.value && res.defaultStart) startInput.value = res.defaultStart;
+            if (endInput && !endInput.value && res.defaultEnd) endInput.value = res.defaultEnd;
 
             const statsMap = {};
             res.stats.forEach(item => {
@@ -417,13 +441,7 @@ function loadEventTypesChart() {
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: {
-                                color: '#ffffff',
-                                font: { size: 12 },
-                                boxHeight: 12,
-                                boxWidth: 12
-                            },
-                            
+                            labels: { color: '#ffffff', font: { size: 12 }, boxHeight: 12, boxWidth: 12 }
                         }
                     }
                 }
@@ -432,7 +450,83 @@ function loadEventTypesChart() {
         .catch(err => console.error("Chyba při načítání statistik typů událostí:", err));
 }
 
-// Přidání event listeneru na tlačítko filtrování
+// 3. Třetí graf (Top 5 zákazníků)
+function loadTopCustomersChart() {
+    fetch('http://localhost:3000/api/admin-top-customers')
+        .then(response => response.json())
+        .then(res => {
+            console.log("Data pro top zákazníky:", res); // Pro kontrolu v konzoli (F12)
+
+            if (!res.success || !res.customers) {
+                console.warn("Server nevrátil data pro top zákazníky.");
+                return;
+            }
+
+            const canvas = document.getElementById('topCustomersChart');
+            if (!canvas) {
+                console.error("Element #topCustomersChart nebyl v HTML nalezen!");
+                return;
+            }
+
+            // Extrahujeme jména a počty pro graf
+            const labels = res.customers.map(c => c.customer_name);
+            const data = res.customers.map(c => c.order_count);
+
+            const ctx = canvas.getContext('2d');
+            
+            if (window.topCustomersChartInstance) {
+                window.topCustomersChartInstance.destroy();
+            }
+
+            window.topCustomersChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Počet rezervací',
+                        data: data,
+                        backgroundColor: blueColor,
+                        borderWidth: 0,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Horizontální sloupcový graf
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#ffffff',
+                                stepSize: 1
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#ffffff',
+                                font: { size: 12 }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(err => console.error("Chyba při načítání top zákazníků pro graf:", err));
+}
+
+// Posluchač pro tlačítko filtru grafů
 document.addEventListener("DOMContentLoaded", () => {
     const filterBtn = document.getElementById('filterChartsBtn');
     if (filterBtn) {
@@ -440,6 +534,7 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             loadBlocksChart();
             loadEventTypesChart();
+            loadTopCustomersChart();
         });
     }
 });
@@ -467,9 +562,10 @@ function showSection(item) {
         window.location.hash = item.content.id;
     }
 
-    if(item.content === dashboardContent) {
+    if (item.content === dashboardContent) {
         loadBlocksChart();
         loadEventTypesChart();
+        loadTopCustomersChart();
     }
 
     if (item.content === eventsContent) {
@@ -527,11 +623,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 
                     dashboardLimitDate.innerHTML = formattedDate;
                 }
-
-                // 2. Vypsání statistik do tvých elementů
-                if (countAllRentDates) countAllRentDates.textContent = data.allCount;
-                if (countFreeRentDates) countFreeRentDates.textContent = `${data.freeCount} / ${data.allCount}`;
-                if (countRentedDates) countRentedDates.textContent = `${data.bookedCount} / ${data.allCount}`;
             }
         })
     .catch(error => console.error('Chyba při načítání nastavení:', error));
@@ -568,7 +659,8 @@ document.addEventListener("DOMContentLoaded", function() {
 // nastavení rozsahu zobrazení rozpisu - kalendáře
 limitDateInput.addEventListener("change", function() {
     const selectedDate = this.value;
-    const today = new Date().toISOString().split('T')[0];
+    //const today = new Date().toISOString().split('T')[0];
+    const nextDay = addOneDay(selectedDate);
 
     // 1. Odešleme data na backend do tabulky setting
     fetch('http://localhost:3000/api/setting', {
@@ -582,7 +674,7 @@ limitDateInput.addEventListener("change", function() {
     .then(res => {
         if (res.success) {
             calendar.setOption('validRange', {
-                end: selectedDate
+                end: nextDay
             });
         }
     })
@@ -830,10 +922,10 @@ function loadCustomers() {
             res.customers.forEach(c => {
                 const tr = document.createElement('tr');
 
-                // Formátování data posledního pronájmu
+                // Formátování data posledního pronájmu (opraveno na správný klíč z backendu)
                 let formattedLastDate = 'Neuvedeno';
-                if (c.last_rental_date) {
-                    const dateObj = new Date(c.last_rental_date);
+                if (c.last_completed_date) {
+                    const dateObj = new Date(c.last_completed_date);
                     formattedLastDate = dateObj.toLocaleDateString('cs-CZ', { 
                         day: 'numeric', 
                         month: 'numeric', 
@@ -844,7 +936,7 @@ function loadCustomers() {
                 }
 
                 tr.innerHTML = `
-                    <td><strong>${c.order_count}</strong></td>
+                    <td><strong>${c.total_orders || c.order_count}</strong></td>
                     <td>${c.name || ''}</td>
                     <td>${c.surname || ''}</td>
                     <td>${c.email || 'Neuvedeno'}</td>
