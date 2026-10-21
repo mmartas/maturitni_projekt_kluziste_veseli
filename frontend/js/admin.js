@@ -261,35 +261,85 @@ const yellowColor = getComputedStyle(document.documentElement)
     .getPropertyValue('--yellow-color-lighter')
     .trim();
 
-// Pomocná funkce pro získání parametrů z nových filtrovacích inputů
+// 1. Event listenery, které zajistí, že se prvky navzájem čistí při změně
+document.addEventListener("DOMContentLoaded", () => {
+    const startInput = document.getElementById('chartStartDate');
+    const endInput = document.getElementById('chartEndDate');
+    const seasonSelect = document.getElementById('filterSeason');
+    const monthSelect = document.getElementById('filterMonth');
+
+    // Když uživatel změní sezónu nebo měsíc, vymažeme ruční datumy v inputech
+    [seasonSelect, monthSelect].forEach(element => {
+        if (element) {
+            element.addEventListener('change', () => {
+                if (startInput) startInput.value = '';
+                if (endInput) endInput.value = '';
+            });
+        }
+    });
+
+    // Když uživatel začne vybírat ruční datum, vymažeme sezónu i měsíc
+    [startInput, endInput].forEach(element => {
+        if (element) {
+            element.addEventListener('change', () => {
+                if (seasonSelect) seasonSelect.value = '';
+                if (monthSelect) monthSelect.value = '';
+            });
+        }
+    });
+});
+
 function getChartDateRangeParams() {
-    const startInput = document.getElementById('filterStartDate')?.value;
-    const endInput = document.getElementById('filterEndDate')?.value;
-    const seasonSelect = document.getElementById('filterSeason')?.value;
-    const monthSelect = document.getElementById('filterMonth')?.value;
+    const startInput = document.getElementById('filterStartDate');
+    const endInput = document.getElementById('filterEndDate');
+    const seasonSelect = document.getElementById('filterSeason');
+    const monthSelect = document.getElementById('filterMonth');
 
-    let startDate = startInput;
-    let endDate = endInput;
+    const hasDates = startInput?.value && startInput.value !== '' && endInput?.value && endInput.value !== '';
+    const hasSeason = seasonSelect?.value && seasonSelect.value !== '';
+    const hasMonth = monthSelect?.value && monthSelect.value !== '';
 
-    // 1. Pokud uživatel vybral celou sezónu
-    if (seasonSelect === '2026/2027') {
-        startDate = '2026-10-01';
-        endDate = '2027-04-30';
-    }
-    // 2. Pokud uživatel vybral konkrétní měsíc
-    else if (monthSelect) {
-        // Určíme rok podle měsíce (zimní/jarní měsíce patří do 2027, podzimní do 2026)
-        let year = ['10', '11', '12'].includes(monthSelect) ? '2026' : '2027';
-        let m = monthSelect.padStart(2, '0');
-        
-        // Zjistíme poslední den v daném měsíci automaticky
-        let lastDay = new Date(year, monthSelect, 0).getDate();
-        
-        startDate = `${year}-${m}-01`;
-        endDate = `${year}-${m}-${lastDay}`;
+    // KONTROLA: Měsíc vybraný bez sezóny
+    if (hasMonth && !hasSeason) {
+        alert('Prosím vyberte nejdříve sezónu, ke které chcete měsíc filtrovat.');
+        return null; // Vracíme null místo prázdného řetězce, abychom dali vědět, že nastala chyba
     }
 
-    // Sestavení query stringu pro API požadavky
+    let startDate = '';
+    let endDate = '';
+
+    // SCÉNÁŘ A: Sezóna / Měsíc
+    if (hasSeason) {
+        if (startInput) startInput.value = '';
+        if (endInput) endInput.value = '';
+
+        const [startYearStr, endYearStr] = seasonSelect.value.split('/');
+        const startYear = parseInt(startYearStr);
+        const endYear = parseInt(endYearStr);
+
+        if (hasMonth) {
+            const mNum = parseInt(monthSelect.value);
+            const year = (mNum >= 10 && mNum <= 12) ? startYear : endYear;
+            const mStr = monthSelect.value.padStart(2, '0');
+            const lastDay = new Date(year, mNum, 0).getDate();
+            
+            startDate = `${year}-${mStr}-01`;
+            endDate = `${year}-${mStr}-${lastDay}`;
+        } else {
+            startDate = `${startYear}-10-01`;
+            endDate = `${endYear}-04-30`;
+        }
+    }
+    // SCÉNÁŘ B: Ruční datum
+    else if (hasDates) {
+        startDate = startInput.value;
+        endDate = endInput.value;
+
+        if (seasonSelect) seasonSelect.value = '';
+        if (monthSelect) monthSelect.value = '';
+    }
+
+    // Sestavení URL parametrů
     let params = '';
     if (startDate && endDate) {
         params = `?startDate=${startDate}&endDate=${endDate}`;
@@ -532,6 +582,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (filterBtn) {
         filterBtn.addEventListener('click', (e) => {
             e.preventDefault();
+
+            const queryParams = getChartDateRangeParams();
+            if (queryParams === null) {
+                return; // Ukončíme funkci, nikam se data neodesílají, nic se nemění
+            }
+            
             loadBlocksChart();
             loadEventTypesChart();
             loadTopCustomersChart();
