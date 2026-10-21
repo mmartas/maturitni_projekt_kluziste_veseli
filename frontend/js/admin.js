@@ -290,61 +290,68 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function getChartDateRangeParams() {
-    const startInput = document.getElementById('filterStartDate');
-    const endInput = document.getElementById('filterEndDate');
+    // Správná ID podle tvého HTML kódu
+    const startInput = document.getElementById('chartStartDate');
+    const endInput = document.getElementById('chartEndDate');
     const seasonSelect = document.getElementById('filterSeason');
     const monthSelect = document.getElementById('filterMonth');
 
-    const hasDates = startInput?.value && startInput.value !== '' && endInput?.value && endInput.value !== '';
-    const hasSeason = seasonSelect?.value && seasonSelect.value !== '';
-    const hasMonth = monthSelect?.value && monthSelect.value !== '';
-
-    // KONTROLA: Měsíc vybraný bez sezóny
-    if (hasMonth && !hasSeason) {
-        alert('Prosím vyberte nejdříve sezónu, ke které chcete měsíc filtrovat.');
-        return null; // Vracíme null místo prázdného řetězce, abychom dali vědět, že nastala chyba
-    }
+    const startVal = startInput?.value;
+    const endVal = endInput?.value;
+    const seasonVal = seasonSelect?.value;
+    const monthVal = monthSelect?.value;
 
     let startDate = '';
     let endDate = '';
 
-    // SCÉNÁŘ A: Sezóna / Měsíc
-    if (hasSeason) {
-        if (startInput) startInput.value = '';
-        if (endInput) endInput.value = '';
+    // 1. PRIORITA: Pokud uživatel vyplnil ruční datum (Od – Do)
+    if (startVal && endVal) {
+        startDate = startVal;
+        endDate = endVal;
 
-        const [startYearStr, endYearStr] = seasonSelect.value.split('/');
+        // Pokud platí ruční datum, vymažeme selecty sezóny/měsíce, ať se to netluče
+        if (seasonSelect) seasonSelect.value = '';
+        if (monthSelect) monthSelect.value = '';
+    }
+    // 2. PRIORITA: Pokud je vybraná sezóna nebo měsíc
+    else if (seasonVal || monthVal) {
+        
+        // Kontrola: Měsíc vybraný bez sezóny
+        if (monthVal && !seasonVal) {
+            alert('Prosím vyberte nejdříve sezónu, ke které chcete měsíc filtrovat.');
+            return null; // Zastaví filtr
+        }
+
+        const [startYearStr, endYearStr] = seasonVal.split('/');
         const startYear = parseInt(startYearStr);
         const endYear = parseInt(endYearStr);
 
-        if (hasMonth) {
-            const mNum = parseInt(monthSelect.value);
-            const year = (mNum >= 10 && mNum <= 12) ? startYear : endYear;
-            const mStr = monthSelect.value.padStart(2, '0');
+        if (monthVal) {
+            const mNum = parseInt(monthVal);
+            // Podzimní měsíce (např. 9, 10, 11, 12) patří do startovního roku, 
+            // zimní/jarní (1, 2) do koncového roku sezóny.
+            const year = (mNum >= 9 && mNum <= 12) ? startYear : endYear;
+            const mStr = monthVal.padStart(2, '0');
             const lastDay = new Date(year, mNum, 0).getDate();
             
             startDate = `${year}-${mStr}-01`;
             endDate = `${year}-${mStr}-${lastDay}`;
         } else {
-            startDate = `${startYear}-10-01`;
+            startDate = `${startYear}-09-01`; // Případně od září, pokud začíná v září
             endDate = `${endYear}-04-30`;
         }
-    }
-    // SCÉNÁŘ B: Ruční datum
-    else if (hasDates) {
-        startDate = startInput.value;
-        endDate = endInput.value;
 
-        if (seasonSelect) seasonSelect.value = '';
-        if (monthSelect) monthSelect.value = '';
+        // Pokud platí sezóna/měsíc, vymažeme vizuálně datumové inputy
+        if (startInput) startInput.value = '';
+        if (endInput) endInput.value = '';
     }
 
-    // Sestavení URL parametrů
-    let params = '';
+    // Sestavení URL parametrů pro API
     if (startDate && endDate) {
-        params = `?startDate=${startDate}&endDate=${endDate}`;
+        return `?startDate=${startDate}&endDate=${endDate}`;
     }
-    return params;
+    
+    return '';
 }
 
 // 1. První graf (bloky)

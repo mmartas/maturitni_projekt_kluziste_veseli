@@ -688,6 +688,7 @@ main {
 .charts {
     display: flex;
     gap: 1rem;
+    flex-wrap: wrap;
 }
 .chart-filters {
     display: flex;
