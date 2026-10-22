@@ -11,6 +11,59 @@ const nodemailer = require('nodemailer');
 app.use(cors()); // Povolí komunikaci mezi frontendem a backendem
 app.use(express.json()); // Umožní serveru číst JSON data z formulářů
 
+const path = require('path');
+const session = require('express-session');
+const bcrypt = require('bcrypt');
+
+// 1. ZDE JE KLÍČOVÉ NASTAVENÍ:
+// Místo toho, abychom zpřístupnili celý hlavní adresář, 
+// zpřístupníme veřejně jen konkrétní složky pro styly (css), skripty (js) a login.html (nebo veřejné assety)
+app.use(express.json()); // Aby server rozuměl JSON datům z fetch požadavků
+
+app.use('/css', express.static(path.join(__dirname, '../frontend/css')));
+app.use('/js', express.static(path.join(__dirname, '../frontend/js')));
+
+// Pokud chceš, aby byl login.html volně přístupný, můžeš ho dát do samostatné routy:
+app.get('/login.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pages/login.html'));
+});
+
+// A totéž pro kořenový odkaz (když někdo přejde na hlavní stránku, hodíme ho na login)
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pages/login.html'));
+});
+
+
+// 2. NASTAVENÍ SESSION (musí být před chráněnými routami)
+app.use(session({
+    secret: 'tady-si-zvol-nejaky-silny-tajny-klic',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }
+}));
+
+
+// 3. BEZPEČNOSTNÍ BRÁNA (Middleware)
+// Tato funkce zkontroluje, jestli je uživatel přihlášený
+function requireAuth(req, res, next) {
+    if (req.session && req.session.isAdmin) {
+        return next(); // Je přihlášený -> pokračuj dál
+    }
+    // Není přihlášený -> šup s ním na login
+    res.redirect('/login.html');
+}
+
+
+// 4. ZABEZPEČENÁ ROUTA PRO ADMIN PANEL
+// Tady chránezíme admin.html. Nikdo se sem nedostane bez platné session!
+app.get('/admin.html', requireAuth, (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pages/admin.html'));
+});
+
+app.get('/admin', requireAuth, (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pages/admin.html'));
+});
+
 // Nastavení připojení k SQL databázi
 const pool = mysql.createPool({
     host: 'localhost',
@@ -527,4 +580,49 @@ app.get('/api/admin-top-customers', async (req, res) => {
         console.error("Chyba při načítání top zákazníků:", err);
         res.status(500).json({ error: "Chyba serveru" });
     }
+});
+
+
+
+
+// 2. Přihlašovací endpoint
+app.post('/api/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Předpokládáme, že v databázi máš tabulku 'admins' se sloupci 'email' a 'password' (kde je bcrypt hash)
+        const [rows] = await pool.query("SELECT * FROM admins WHERE email = ?", [email]);
+
+        if (rows.length === 0) {
+            return res.status(401).json({ success: false, error: 'Nesprávné uživatelské jméno nebo heslo.' });
+        }
+
+        const admin = rows[0];
+
+        // Porovnání zadaného hesla s hashem v databázi přes bcrypt
+        const match = await bcrypt.compare(password, admin.password);
+
+        if (!match) {
+            return res.status(401).json({ success: false, error: 'Nesprávné uživatelské jméno nebo heslo.' });
+        }
+
+        // Uložení informací do session
+        req.session.isAdmin = true;
+        req.session.adminUser = admin.email;
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Chyba při zpracování přihlášení:", err);
+        res.status(500).json({ success: false, error: 'Chyba serveru' });
+    }
+});
+
+app.post('/api/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            return res.status(500).json({ success: false, error: 'Chyba při odhlašování' });
+        }
+        res.clearCookie('connect.sid'); // Vymaže cookie se session
+        res.json({ success: true });
+    });
 });
