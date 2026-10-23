@@ -7,12 +7,14 @@ const eventsIcon = document.getElementById("eventsIcon");
 const reservationsIcon = document.getElementById("reservationsIcon");
 const inboxIcon = document.getElementById("inboxIcon");
 const customersIcon = document.getElementById("customersIcon");
+const adminUserIcon = document.getElementById("adminUserIcon");
 
 const dashboardContent = document.getElementById("dashboard");
 const eventsContent = document.getElementById("events");
 const reservationsContent = document.getElementById("reservations");
 const inboxContent = document.getElementById("inbox");
 const customersContent = document.getElementById("customers");
+const adminUserContent = document.getElementById("admin");
 const allContents = document.querySelectorAll("#adminContent .content");
 
 const adminEventsForm = document.getElementById("insertEventsForm");
@@ -609,7 +611,8 @@ const navItems = [
     { icon: eventsIcon, content: eventsContent },
     { icon: reservationsIcon, content: reservationsContent },
     { icon: inboxIcon, content: inboxContent },
-    { icon: customersIcon, content: customersContent }
+    { icon: customersIcon, content: customersContent },
+    { icon: adminUserIcon, content: adminUserContent}
 ];
 
 // Pomocná funkce pro přepnutí sekce a uložení do URL

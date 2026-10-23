@@ -60,9 +60,11 @@ app.get('/admin.html', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pages/admin.html'));
 });
 
-app.get('/admin', requireAuth, (req, res) => {
+app.get('/pages/admin.html', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pages/admin.html'));
 });
+
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Nastavení připojení k SQL databázi
 const pool = mysql.createPool({
@@ -617,12 +619,13 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-app.post('/api/logout', (req, res) => {
+// Routa pro odhlášení (GET požadavek, který odpovídá tvému <a> odkazu)
+app.get('/logout', (req, res) => {
     req.session.destroy(err => {
         if (err) {
-            return res.status(500).json({ success: false, error: 'Chyba při odhlašování' });
+            return res.status(500).send('Chyba při odhlašování');
         }
         res.clearCookie('connect.sid'); // Vymaže cookie se session
-        res.json({ success: true });
+        res.redirect('/index.html'); // Přesměruje na přihlášení (nebo /index.html)
     });
 });
