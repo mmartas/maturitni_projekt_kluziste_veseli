@@ -8,6 +8,7 @@ const reservationsIcon = document.getElementById("reservationsIcon");
 const inboxIcon = document.getElementById("inboxIcon");
 const customersIcon = document.getElementById("customersIcon");
 const adminUserIcon = document.getElementById("adminUserIcon");
+const editIcon = document.getElementById("editIcon");
 
 const dashboardContent = document.getElementById("dashboard");
 const eventsContent = document.getElementById("events");
@@ -15,6 +16,7 @@ const reservationsContent = document.getElementById("reservations");
 const inboxContent = document.getElementById("inbox");
 const customersContent = document.getElementById("customers");
 const adminUserContent = document.getElementById("admin");
+const editContent = document.getElementById("edit");
 const allContents = document.querySelectorAll("#adminContent .content");
 
 const adminEventsForm = document.getElementById("insertEventsForm");
@@ -630,7 +632,8 @@ const navItems = [
     { icon: reservationsIcon, content: reservationsContent },
     { icon: inboxIcon, content: inboxContent },
     { icon: customersIcon, content: customersContent },
-    { icon: adminUserIcon, content: adminUserContent}
+    { icon: adminUserIcon, content: adminUserContent},
+    { icon: editIcon, content: editContent}
 ];
 
 // Pomocná funkce pro přepnutí sekce a uložení do URL
@@ -1069,6 +1072,86 @@ if (changePasswordForm) {
             console.error('Chyba při komunikaci se serverem:', err);
             passwordMessage.style.color = 'red';
             passwordMessage.textContent = 'Chyba připojení k serveru.';
+        }
+    });
+}
+
+
+
+// Seznam všech našich klíčů z HTML formuláře
+const contentKeys = [
+    'hp-public-skate',
+    'hp-rent-ice',
+    'hp-school',
+    'hp-sharping',
+    'hp-rental-skate',
+    'hp-food',
+    'hp-changing-room',
+
+    'price-public-skate',
+    'price-rent-ice',
+    'price-school',
+    'price-sharping',
+    'price-rental-skate',
+    'price-food',
+
+    'schedule-working-days',
+    'schedule-weekends',
+    'schedule-sharping',
+    'schedule-food',
+    'schedule-rental-skate'
+];
+
+// 1. Načtení dat do formuláře při otevření adminu
+async function loadAdminContent() {
+    try {
+        const res = await fetch('/api/content');
+        const data = await res.json();
+        
+        if (data.success && data.content) {
+            contentKeys.forEach(key => {
+                const textarea = document.getElementById(key);
+                if (textarea && data.content[key] !== undefined) {
+                    textarea.value = data.content[key]; // Do textarea píšeme čistý text/HTML kód
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Chyba při načítání obsahu:', err);
+    }
+}
+
+loadAdminContent();
+
+// 2. Uložení všech změn po odeslání formuláře
+const editContentForm = document.getElementById('editContentForm');
+const contentMsg = document.getElementById('contentMsg');
+
+if (editContentForm) {
+    editContentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        try {
+            // Projdeme v cyklu každé políčko a pošleme ho na server
+            for (const key of contentKeys) {
+                const textValue = document.getElementById(key).value;
+
+                await fetch('/api/content/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        section_key: key, 
+                        content: textValue 
+                    })
+                });
+            }
+
+            contentMsg.style.color = 'green';
+            contentMsg.textContent = 'Všechny změny byly úspěšně uloženy!';
+        } catch (err) {
+            console.error('Chyba při ukládání:', err);
+            contentMsg.style.color = 'red';
+            contentMsg.textContent = 'Chyba při komunikaci se serverem.';
         }
     });
 }

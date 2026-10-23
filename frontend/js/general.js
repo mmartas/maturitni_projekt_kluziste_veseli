@@ -86,3 +86,48 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
+
+const contentKeys = [
+    'hp-public-skate',
+    'hp-rent-ice',
+    'hp-school',
+    'hp-sharping',
+    'hp-rental-skate',
+    'hp-food',
+    'hp-changing-room',
+
+    'price-public-skate',
+    'price-rent-ice',
+    'price-school',
+    'price-sharping',
+    'price-rental-skate',
+    'price-food',
+
+    'schedule-working-days',
+    'schedule-weekends',
+    'schedule-sharping',
+    'schedule-food',
+    'schedule-rental-skate'
+];
+
+async function renderPublicContent() {
+    try {
+        const res = await fetch('/api/content');
+        const data = await res.json();
+
+        if (data.success && data.content) {
+            contentKeys.forEach(key => {
+                const targetDiv = document.getElementById(key);
+                if (targetDiv && data.content[key] !== undefined) {
+                    // KLÍČOVÝ MOMENT: Používáme innerHTML, aby se HTML tagy (odkazy) vykreskly správně!
+                    targetDiv.innerHTML = data.content[key];
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Nepodařilo se načíst dynamický obsah webu', err);
+    }
+}
+
+// Spustit po načtení stránky
+document.addEventListener('DOMContentLoaded', renderPublicContent);

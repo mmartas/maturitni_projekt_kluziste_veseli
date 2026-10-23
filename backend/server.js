@@ -669,3 +669,41 @@ app.post('/api/change-password', requireAuth, async (req, res) => {
         res.status(500).json({ success: false, error: 'Chyba serveru při změně hesla' });
     }
 });
+
+
+// 1. Veřejná routa pro získání veškerého obsahu webu
+app.get('/api/content', async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM site_content');
+        // Převedeme pole na přehledný objekt klíč-hodnota
+        const contentMap = {};
+        rows.forEach(row => {
+            contentMap[row.section_key] = row.content;
+        });
+        res.json({ success: true, content: contentMap });
+    } catch (err) {
+        console.error('Chyba při načítání obsahu:', err);
+        res.status(500).json({ success: false, error: 'Chyba serveru' });
+    }
+});
+
+// 2. Chráněná routa pro aktualizaci obsahu z adminu
+app.post('/api/content/update', requireAuth, async (req, res) => {
+    const { section_key, content } = req.body;
+
+    if (!section_key || content === undefined) {
+        return res.status(400).json({ success: false, error: 'Chybí data (section_key nebo content)' });
+    }
+
+    try {
+        // Pokud klíč už existuje, aktualizuje ho. Pokud ne, vytvoří ho.
+        await pool.query(
+            'INSERT INTO site_content (section_key, content) VALUES (?, ?) ON DUPLICATE KEY UPDATE content = ?',
+            [section_key, content, content]
+        );
+        res.json({ success: true, message: 'Obsah byl úspěšně aktualizován' });
+    } catch (err) {
+        console.error('Chyba při ukládání obsahu:', err);
+        res.status(500).json({ success: false, error: 'Chyba při ukládání do databáze' });
+    }
+});

@@ -756,3 +756,21 @@ main {
 /*
     END - ADMIN USER PAGE
 */
+
+/*
+    START - EDIT PAGE
+*/
+#edit {
+    display: flex;
+    flex-direction: column;
+}
+#editContentForm {
+    display: flex;
+    flex-wrap: wrap;
+}
+#editContentForm button[type="submit"] {
+    width: 100%;
+}
+/*
+    END - EDIT PAGE
+*/

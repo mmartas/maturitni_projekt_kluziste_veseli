@@ -76,6 +76,12 @@
                                 <a href="#">Zákazníci</a>
                             </li>
                             <li>
+                                <a href="#" id="editIcon" class="menu_icons">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <a href="">Editování</a>
+                            </li>
+                            <li>
                                 <a href="#" id="adminUserIcon" class="menu_icons">
                                     <i class="fa-solid fa-user"></i>
                                 </a>
@@ -265,6 +271,99 @@
                             </form>
                             <p id="passwordMessage"></p>
                         </div>
+                    </section>
+
+                    <section id="edit" class="content">
+                        <h2 class="title">Správa obsahu webu</h2>
+                        <form id="editContentForm">
+
+                            <div class="hp-page">
+                                <h3>Hlavní strana</h3>
+                                <div>
+                                    <label for="hp-public-skate">Veřejné bruslení</label><br>
+                                    <textarea id="hp-public-skate"></textarea><br>
+                                </div>
+                                <div>
+                                    <label for="hp-rent-ice">Pronájem ledu</label>
+                                    <textarea id="hp-rent-ice"></textarea>
+                                </div>
+                                <div>
+                                    <label for="hp-school">Školní akce</label>
+                                    <textarea id="hp-school"></textarea>
+                                </div>
+                                <div>
+                                    <label for="hp-sharping">Broušení</label>
+                                    <textarea id="hp-sharping"></textarea>
+                                </div>
+                                <div>
+                                    <label for="hp-rental-skate">Půjčování bruslí</label>
+                                    <textarea id="hp-rental-skate"></textarea>
+                                </div>
+                                <div>
+                                    <label for="hp-food">Jídlo</label>
+                                    <textarea id="hp-food"></textarea>
+                                </div>
+                                <div>
+                                    <label for="hp-changing-room">Převlékárna</label>
+                                    <textarea id="hp-changing-room"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="price-page">
+                                <h3>Ceník</h3>
+                                <div>
+                                    <label for="price-public-skate">Veřejné bruslení</label><br>
+                                    <textarea id="price-public-skate"></textarea><br>
+                                </div>
+                                <div>
+                                    <label for="price-rent-ice">Pronájem ledu</label>
+                                    <textarea id="price-rent-ice"></textarea>
+                                </div>
+                                <div>
+                                    <label for="price-school">Školní akce</label>
+                                    <textarea id="price-school"></textarea>
+                                </div>
+                                <div>
+                                    <label for="price-sharping">Broušení</label>
+                                    <textarea id="price-sharping"></textarea>
+                                </div>
+                                <div>
+                                    <label for="price-rental-skate">Půjčování bruslí</label>
+                                    <textarea id="price-rental-skate"></textarea>
+                                </div>
+                                <div>
+                                    <label for="price-food">Jídlo</label>
+                                    <textarea id="price-food"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="schedule-page">
+                                <h3>Rozpis ledu</h3>
+                                <div>
+                                    <label for="schedule-working-days">Pracovní dny</label><br>
+                                    <textarea id="schedule-working-days"></textarea><br>
+                                </div>
+                                <div>
+                                    <label for="schedule-weekends">Víkendy</label>
+                                    <textarea id="schedule-weekends"></textarea>
+                                </div>
+                                <div>
+                                    <label for="schedule-sharping">Broušení</label>
+                                    <textarea id="schedule-sharping"></textarea>
+                                </div>
+                                <div>
+                                    <label for="schedule-food">Jídlo</label>
+                                    <textarea id="schedule-food"></textarea>
+                                </div>
+                                <div>
+                                    <label for="schedule-rental-skate">Půjčování bruslí</label>
+                                    <textarea id="schedule-rental-skate"></textarea>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="box_glass_effect_red">Uložit změny</button>
+                        </form>
+                        <p id="contentMsg"></p>
                     </section>
                     
                 </div>
