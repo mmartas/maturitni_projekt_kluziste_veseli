@@ -35,3 +35,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+
+// Najde všechna oka pro přepínání hesla na stránce
+const togglePasswordIcons = document.querySelectorAll('.toggle-password');
+
+togglePasswordIcons.forEach(icon => {
+    icon.addEventListener('click', () => {
+        // Zjistíme, jaké ID má input, který patří k tomuto oku
+        const targetId = icon.getAttribute('data-target');
+        const passwordInput = document.getElementById(targetId);
+
+        if (passwordInput) {
+            // Přepneme typ inputu (password <-> text)
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+
+            // Přepneme ikonu FontAwesome (oko / přeškrtnuté oko)
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        }
+    });
+});

@@ -79,7 +79,7 @@
                                 <a href="#" id="adminUserIcon" class="menu_icons">
                                     <i class="fa-solid fa-user"></i>
                                 </a>
-                                <a href="#">Administrátor</a>
+                                <a href="#">Admin</a>
                             </li>
                         </ul>
                     </div>
@@ -244,9 +244,26 @@
                     <section id="admin" class="content">
                         <h2 class="title">Spravovat admin účet</h2>
                         <div class="">
-                            <a href="/logout" id="logOutButton">
+                            <a href="/logout" id="logOutButton" class="box_glass_effect_red">
+                                <label for="">Odhlásit se</label>
                                 <i class="fa-solid fa-arrow-right-from-bracket"></i>
                             </a>
+
+                            <form id="changePasswordForm">
+                                <h3>Změna hesla</h3>
+                                <div>
+                                    <label>Současné heslo:</label>
+                                    <input type="password" id="currentPassword" required>
+                                    <i class="fa-solid fa-eye toggle-password" data-target="currentPassword"></i>
+                                </div>
+                                <div>
+                                    <label>Nové heslo:</label>
+                                    <input type="password" id="newPassword" required>
+                                    <i class="fa-solid fa-eye toggle-password" data-target="newPassword"></i>
+                                </div>
+                                <button type="submit">Změnit heslo</button>
+                            </form>
+                            <p id="passwordMessage"></p>
                         </div>
                     </section>
                     

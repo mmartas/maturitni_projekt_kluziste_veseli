@@ -514,7 +514,6 @@ function loadTopCustomersChart() {
     fetch('http://localhost:3000/api/admin-top-customers')
         .then(response => response.json())
         .then(res => {
-            console.log("Data pro top zákazníky:", res); // Pro kontrolu v konzoli (F12)
 
             if (!res.success || !res.customers) {
                 console.warn("Server nevrátil data pro top zákazníky.");
@@ -604,6 +603,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+const togglePasswordIcons = document.querySelectorAll('.toggle-password');
+
+togglePasswordIcons.forEach(icon => {
+    icon.addEventListener('click', () => {
+        // Zjistíme, jaké ID má input, který patří k tomuto oku
+        const targetId = icon.getAttribute('data-target');
+        const passwordInput = document.getElementById(targetId);
+
+        if (passwordInput) {
+            // Přepneme typ inputu (password <-> text)
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+
+            // Přepneme ikonu FontAwesome (oko / přeškrtnuté oko)
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        }
+    });
+});
 
 // pole, které propojuje ikonu, textový odkaz a obsah v celém admin panelu
 const navItems = [
@@ -1014,4 +1032,43 @@ function loadCustomers() {
             });
         })
         .catch(err => console.error("Chyba při načítání zákazníků:", err));
+}
+
+
+
+const changePasswordForm = document.getElementById('changePasswordForm');
+const passwordMessage = document.getElementById('passwordMessage');
+
+if (changePasswordForm) {
+    changePasswordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+
+        try {
+            const response = await fetch('/api/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ currentPassword, newPassword })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                passwordMessage.style.color = 'green';
+                passwordMessage.textContent = 'Heslo bylo úspěšně změněno!';
+                changePasswordForm.reset();
+            } else {
+                passwordMessage.style.color = 'red';
+                passwordMessage.textContent = 'Chyba: ' + data.error;
+            }
+        } catch (err) {
+            console.error('Chyba při komunikaci se serverem:', err);
+            passwordMessage.style.color = 'red';
+            passwordMessage.textContent = 'Chyba připojení k serveru.';
+        }
+    });
 }

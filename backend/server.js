@@ -30,7 +30,7 @@ app.get('/login.html', (req, res) => {
 
 // A totéž pro kořenový odkaz (když někdo přejde na hlavní stránku, hodíme ho na login)
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/pages/login.html'));
+    res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
 
@@ -628,4 +628,44 @@ app.get('/logout', (req, res) => {
         res.clearCookie('connect.sid'); // Vymaže cookie se session
         res.redirect('/index.html'); // Přesměruje na přihlášení (nebo /index.html)
     });
+});
+
+
+// Zabezpečená routa pro změnu hesla
+app.post('/api/change-password', requireAuth, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    const email = req.session.adminUser; // Zjistíme, kdo je přihlášený
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ success: false, error: 'Vyplňte všechna pole' });
+    }
+
+    try {
+        // 1. Najdeme admina v databázi
+        const [rows] = await pool.query('SELECT * FROM admins WHERE email = ?', [email]);
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Administrátor nenalezen' });
+        }
+
+        const admin = rows[0];
+
+        // 2. Ověříme, zda souhlasí současné heslo pomocí bcrypt
+        const isMatch = await bcrypt.compare(currentPassword, admin.password);
+        if (!isMatch) {
+            return res.status(400).json({ success: false, error: 'Nesprávné současné heslo' });
+        }
+
+        // 3. Zahashujeme nové heslo
+        const saltRounds = 10;
+        const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+        // 4. Uložíme nové heslo do databáze
+        await pool.query('UPDATE admins SET password = ? WHERE email = ?', [hashedNewPassword, email]);
+
+        res.json({ success: true, message: 'Heslo bylo úspěšně změněno' });
+
+    } catch (err) {
+        console.error('Chyba při změně hesla:', err);
+        res.status(500).json({ success: false, error: 'Chyba serveru při změně hesla' });
+    }
 });
