@@ -121,7 +121,7 @@
                                         <option value="2">Únor</option>
                                     </select>
                                 </label>
-                                <button id="filterChartsBtn" class="box_glass_effect_red text">Filtrovat grafy</button>
+                                <button title="Filtrovat grafy" id="filterChartsBtn" class="btns box_glass_effect_blue"><i class="fa-solid fa-filter"></i></button>
                             </div>
                             <div class="charts">
                                 <div class="chart_card">
@@ -167,15 +167,15 @@
                                 </div>
                                 <div class="form_group clientInfo">
                                     <label for="">Příjmení klienta: </label>
-                                    <input type="text" id="adminBookedClientSurname">
+                                    <input class="name-input" type="text" id="adminBookedClientSurname">
                                 </div>
                                 <div class="form_group clientInfo" id="bookedClientName">
                                     <label for="">Jméno klienta: </label>
-                                    <input type="text" id="adminBookedClientName">
+                                    <input class="name-input" type="text" id="adminBookedClientName">
                                 </div>
                                 <div class="form_group clientInfo">
                                     <label for="">Tel. klienta: </label>
-                                    <input type="tel" id="adminBookedClientTel">
+                                    <input class="phone-input" type="tel" id="adminBookedClientTel">
                                 </div>
                                 <div class="form_group clientInfo">
                                     <label for="">Email klienta: </label>
@@ -190,15 +190,15 @@
                                     <input type="datetime-local" id="eventEnd" required>
                                 </div>
                                 <div class="form_buttons">
-                                    <button title="Přidat událost" type="submit" id="submitBtn" class="box_glass_effect_green">
+                                    <button title="Přidat událost" type="submit" id="submitBtn" class="btns box_glass_effect_green">
                                         <i class="fa-solid fa-check"></i>
                                         
                                     </button>
-                                    <button title="Odstranit událost" type="button" id="deleteBtn" class="box_glass_effect_red">
+                                    <button title="Odstranit událost" type="button" id="deleteBtn" class="btns box_glass_effect_red">
                                         <i class="fa-solid fa-trash-can"></i>
                                         
                                     </button>
-                                    <button title="Zrušit úpravy" type="button" id="cancelBtn" class="box_glass_effect_blue">
+                                    <button title="Zrušit úpravy" type="button" id="cancelBtn" class="btns box_glass_effect_blue">
                                         <i class="fa-solid fa-times"></i>
                                         
                                     </button>
@@ -228,49 +228,19 @@
 
                     <section id="customers" class="content segment">
                         <h2 class="title">Seznam zákazníků</h2>
-                        <div class="table-responsive">
-                            <table class="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th>Počet uskutečněných pronájmů</th>
-                                        <th>Jméno</th>
-                                        <th>Příjmení</th>
-                                        <th>E-mail</th>
-                                        <th>Telefon</th>
-                                        <th>Poslední pronájem</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="customersTableBody">
-                                    
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
-
-                    <section id="admin" class="content">
-                        <h2 class="title">Spravovat admin účet</h2>
-                        <div class="">
-                            <a href="/logout" id="logOutButton" class="box_glass_effect_red">
-                                <label for="">Odhlásit se</label>
-                                <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                            </a>
-
-                            <form id="changePasswordForm">
-                                <h3>Změna hesla</h3>
-                                <div>
-                                    <label>Současné heslo:</label>
-                                    <input type="password" id="currentPassword" required>
-                                    <i class="fa-solid fa-eye toggle-password" data-target="currentPassword"></i>
-                                </div>
-                                <div>
-                                    <label>Nové heslo:</label>
-                                    <input type="password" id="newPassword" required>
-                                    <i class="fa-solid fa-eye toggle-password" data-target="newPassword"></i>
-                                </div>
-                                <button type="submit">Změnit heslo</button>
-                            </form>
-                            <p id="passwordMessage"></p>
-                        </div>
+                        <table class="customers-table text">
+                            <thead>
+                                <tr>
+                                    <th>Počet uskutečněných pronájmů</th>
+                                    <th>Jméno</th>
+                                    <th>Příjmení</th>
+                                    <th>E-mail</th>
+                                    <th>Telefon</th>
+                                    <th>Poslední pronájem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customersTableBody"></tbody>
+                        </table>
                     </section>
 
                     <section id="edit" class="content">
@@ -361,9 +331,33 @@
                                 </div>
                             </div>
 
-                            <button type="submit" class="box_glass_effect_red">Uložit změny</button>
+                            <button title="Uložit změny" type="submit" class="btns box_glass_effect_green"><i class="fa-solid fa-check"></i></button>
                         </form>
                         <p id="contentMsg"></p>
+                    </section>
+
+                    <section id="admin" class="content">
+                        <h2 class="title">Spravovat admin účet</h2>
+                        <form id="changePasswordForm" class="text">
+                            <h3>Změna hesla</h3>
+                            <div>
+                                <label>Současné heslo:</label>
+                                <input type="password" id="currentPassword" required>
+                                <i class="fa-solid fa-eye toggle-password" data-target="currentPassword"></i>
+                            </div>
+                            <div>
+                                <label>Nové heslo:</label>
+                                <input type="password" id="newPassword" required>
+                                <i class="fa-solid fa-eye toggle-password" data-target="newPassword"></i>
+                            </div>
+                            <button title="Změnit heslo" type="submit" class="btns box_glass_effect_green"><i class="fa-solid fa-check"></i></button>
+                            <p id="passwordMessage"></p>
+                        </form>
+                            
+                        <a href="/logout" id="logOutButton" class="box_glass_effect_red">
+                            <span>Odhlásit se</span>
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        </a>
                     </section>
                     
                 </div>
@@ -372,5 +366,6 @@
     </main>
     <script src="../js/function.js"></script>
     <script src="../js/admin.js"></script>
+    <script src="../js/general.js"></script>
 </body>
 </html>

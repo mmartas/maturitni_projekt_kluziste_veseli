@@ -234,4 +234,45 @@ function resetFormMode() {
     })
     deleteBtn.style.display = "none";
     cancelBtn.style.display = "none";
+    submitBtn.title = "Přidat událost";
+}
+
+
+function setupPhoneFormatters() {
+    // Posloucháme globálně na dokumentu, takže to nezáleží na tom, 
+    // kdy se input v DOMu objeví (jestli hned, nebo až po kliknutí)
+    document.addEventListener("input", function (e) {
+        // Zkontrolujeme, jestli upravovaný prvek má třídu "phone-input"
+        if (e.target && e.target.classList.contains("phone-input")) {
+            let cleaned = e.target.value.replace(/\D/g, "");
+
+            // Omezení na maximálně 9 čísel
+            if (cleaned.length > 9) {
+                cleaned = cleaned.substring(0, 9);
+            }
+
+            // Formátování po třech číslech (např. 123 456 789)
+            let formatted = "";
+            if (cleaned.length > 0) {
+                formatted = cleaned.substring(0, 3);
+            }
+            if (cleaned.length > 3) {
+                formatted += " " + cleaned.substring(3, 6);
+            }
+            if (cleaned.length > 6) {
+                formatted += " " + cleaned.substring(6, 9);
+            }
+
+            e.target.value = formatted;
+        }
+    });
+}
+
+function setupNameFormatters() {
+    document.addEventListener("input", function (e) {
+        // Zkontroluje, jestli upravovaný prvek má třídu "name-input"
+        if (e.target && e.target.classList.contains("name-input")) {
+            e.target.value = e.target.value.replace(/[^a-zA-ZáčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ\s]/g, "");
+        }
+    });
 }

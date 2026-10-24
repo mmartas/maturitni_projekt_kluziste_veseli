@@ -14,6 +14,17 @@ main {
     gap: 1rem;
 }
 
+.btns {
+    color: white;
+    padding: 1rem;
+    font-size: 1.5rem;
+    border-radius: 100%;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
 /*
     MENU START
 */
@@ -254,6 +265,7 @@ main:has(#dashboard.active) {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
+    align-items: center;
 }
 
 #filterChartsBtn {
@@ -385,6 +397,11 @@ main:has(#dashboard.active) {
     flex-direction: column;
     align-items: center;
 }
+#insertEventsForm .form_buttons {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
 
 .fc {
     width: 70% !important;
@@ -406,19 +423,7 @@ main:has(#dashboard.active) {
     display: none;
 }
 
-.form_buttons button {
-    color: white;
-    padding: 1rem;
-    font-size: 1.5rem;
-    border-radius: 100%;
-    width: 60px;
-    height: 60px;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-}
-#submitBtn:hover {
-    background-color: var(--green-color);
-}
+
 #deleteBtn:hover {
     background-color: var(--red-color);
 }
@@ -710,24 +715,25 @@ main:has(#dashboard.active) {
 /*
     START - CUSTOMERS CONTENT
 */
-.admin-table {
+.customers-table {
     width: 100%;
     border-collapse: collapse;
     color: #fff;
     text-align: left;
+    line-height: normal;
 }
 
-.admin-table th, .admin-table td {
+.customers-table th, .customers-table td {
     padding: 12px 15px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.admin-table th {
+.customers-table th {
     background: rgba(255, 255, 255, 0.05);
     font-weight: 600;
 }
 
-.admin-table tr:hover {
+.customers-table tr:hover {
     background: rgba(255, 255, 255, 0.03);
 }
 /*
@@ -769,7 +775,10 @@ main:has(#dashboard.active) {
 /*
     START - ADMIN USER PAGE
 */
-
+#admin {
+    display: flex;
+    flex-direction: column;
+}
 #logOutButton {
     color: var(--white-color);
     padding: 0.5rem 1rem;
@@ -778,15 +787,26 @@ main:has(#dashboard.active) {
     display: flex;
     justify-content: space-between;
     width: 150px;
+    margin-top: auto;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+#logOutButton:hover {
+    background-color: var(--red-color);
 }
 #logOutButton i {
     transform: rotate(180deg);
 }
 
+
+
 /*
     END - ADMIN USER PAGE
 */
-
+/*admin změna hesla, editování obsahu webu, events-kalendář*/
+#changePasswordForm button:hover, #editContentForm button:hover, #submitBtn:hover {
+    background-color: var(--green-color);
+}
 /*
     START - EDIT PAGE
 */
@@ -797,9 +817,6 @@ main:has(#dashboard.active) {
 #editContentForm {
     display: flex;
     flex-wrap: wrap;
-}
-#editContentForm button[type="submit"] {
-    width: 100%;
 }
 /*
     END - EDIT PAGE

@@ -131,3 +131,4 @@ async function renderPublicContent() {
 
 // Spustit po načtení stránky
 document.addEventListener('DOMContentLoaded', renderPublicContent);
+

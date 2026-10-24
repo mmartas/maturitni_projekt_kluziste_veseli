@@ -13,6 +13,9 @@ const formSubmitButton = document.getElementById("formSubmitButton");
 
 let savedLimitDate = null;
 
+setupPhoneFormatters();
+setupNameFormatters();
+
 document.addEventListener('DOMContentLoaded', async function () {
     // načtení limitního data z databáze - pouze aktuální rozpis
     await fetch('http://localhost:3000/api/setting')
@@ -285,44 +288,4 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeModal();
     });
-});
-
-// nastavení inputu pro tel. číslo
-const phoneInput = document.getElementById("clientTel");
-
-phoneInput.addEventListener("input", function (e) {
-    // 1. Odstraní všechno, co není číslo
-    let cleaned = e.target.value.replace(/\D/g, "");
-
-    // 2. Omezení na maximálně 9 čísel
-    if (cleaned.length > 9) {
-        cleaned = cleaned.substring(0, 9);
-    }
-
-    // 3. Formátování po třech číslech (např. 123 456 789)
-    let formatted = "";
-    if (cleaned.length > 0) {
-        formatted = cleaned.substring(0, 3);
-    }
-    if (cleaned.length > 3) {
-        formatted += " " + cleaned.substring(3, 6);
-    }
-    if (cleaned.length > 6) {
-        formatted += " " + cleaned.substring(6, 9);
-    }
-
-    // 4. Vrácení naformátovaného textu zpět do inputu
-    e.target.value = formatted;
-});
-
-// nastavení inputů pro jméno a příjmení
-const nameInput = document.getElementById("clientName");
-const surnameInput = document.getElementById("clientSurname");
-
-nameInput.addEventListener("input", function(e) {
-    e.target.value = e.target.value.replace(/[^a-zA-ZáčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ\s]/g, "");
-});
-
-surnameInput.addEventListener("input", function(e) {
-    e.target.value = e.target.value.replace(/[^a-zA-ZáčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ\s]/g, "");
 });

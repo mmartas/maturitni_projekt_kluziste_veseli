@@ -43,8 +43,12 @@ let savedLimitDate = null; // Globální proměnná pro uložení limitu
 let calendar;
 let calendarInitialized = false;
 
+
 let currentEditingId = null;
 let currentEventIsBooked = false;
+
+setupPhoneFormatters();
+setupNameFormatters();
 
 // vysunutí meníčka v levém admin panelu po kliknutí na šipku + (otočení šipky animací)
 menuArrow.addEventListener("click", (e) => {
@@ -173,7 +177,7 @@ function initCalendar() {
             document.getElementById("eventStart").value = info.event.startStr.slice(0, 16);
             document.getElementById("eventEnd").value = info.event.endStr ? info.event.endStr.slice(0, 16) : "";
 
-            document.getElementById("submitBtn").title = "Potvrdit změny";
+            submitBtn.title = "Potvrdit změny";
             
             if (currentEventIsBooked) {
                 deleteBtn.title = "Zrušit rezervaci";
