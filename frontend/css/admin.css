@@ -275,9 +275,7 @@ main:has(#dashboard.active) {
     transition: all 0.3s ease-in-out;
 }
 
-#filterChartsBtn:hover {
-    background-color: var(--red-color);
-}
+
 
 /*
     END - DASHBOARD CONTENT
@@ -427,7 +425,7 @@ main:has(#dashboard.active) {
 #deleteBtn:hover {
     background-color: var(--red-color);
 }
-#cancelBtn:hover {
+#cancelBtn:hover, #filterChartsBtn:hover {
     background-color: var(--blue-color);
 }
 .fc-printButton-button::before {
@@ -764,8 +762,27 @@ main:has(#dashboard.active) {
     cursor: pointer;
     transition: 0.3s all ease-in-out;
 }
-#signInForm button:hover {
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+    100% { transform: translateX(0); }
+}
+
+.box_glass_effect_blue:hover {
+    background-color: var(--blue-color);
+}
+.box_glass_effect_red:hover {
     background-color: var(--red-color);
+}
+/* Třída, kterou JavaScript přidá při špatných údajích */
+.error-shake {
+    border-color: var(--red-color) !important;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3); /* Jemná červená aura */
+    animation: shake 0.4s ease-in-out;        /* Spustí zatřesení na 0.4 vteřiny */
 }
 
 /*

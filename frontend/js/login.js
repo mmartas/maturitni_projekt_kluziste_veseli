@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     const loginForm = document.getElementById('signInForm');
-    const errorMsg = document.getElementById('signInErrorMessage');
+    const signInContainer = document.querySelector(".signincontainer");
+    const signInErrorMessage = document.createElement("div");
+    const signInButton = document.getElementById("signInButton");
 
     if (!loginForm) return;
 
@@ -9,8 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const email = document.getElementById('adminUsername').value.trim();
         const password = document.getElementById('adminPassword').value;
-
-        errorMsg.textContent = '';
 
         try {
             const response = await fetch('http://localhost:3000/api/login', {
@@ -27,11 +27,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Přihlášení proběhlo úspěšně -> přesměrování do administrace
                 window.location.href = 'admin.html';
             } else {
-                errorMsg.textContent = result.error || 'Nesprávné uživatelské jméno nebo heslo.';
+                signInContainer.classList.add("error-shake");
+                signInButton.classList.remove("box_glass_effect_blue");
+                signInButton.classList.add("box_glass_effect_red");
+
+                setTimeout(() => {
+                    signInContainer.classList.remove("error-shake");
+                    signInButton.classList.add("box_glass_effect_blue");
+                    signInButton.classList.remove("box_glass_effect_red");
+                }, 2000);
             }
         } catch (err) {
             console.error("Chyba při přihlašování:", err);
-            errorMsg.textContent = 'Chyba serveru. Zkuste to prosím později.';
+            loginForm.appendChild(signInErrorMessage);
+            signInErrorMessage.style.color = "var(--red-color)";
+            signInErrorMessage.textContent =  'Chyba serveru. Zkuste to prosím později.';
+
+            setTimeout(() => {
+                loginForm.removeChild(signInErrorMessage);
+            }, 2000);
         }
     });
 });
