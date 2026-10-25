@@ -9,6 +9,9 @@ document.addEventListener("DOMContentLoaded", () => {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        signInButton.textContent = "Přihlašuji..."
+        signInButton.disabled = true;
+
         const email = document.getElementById('adminUsername').value.trim();
         const password = document.getElementById('adminPassword').value;
 
@@ -27,6 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Přihlášení proběhlo úspěšně -> přesměrování do administrace
                 window.location.href = 'admin.html';
             } else {
+                signInButton.textContent = "Přihlásit"
+                signInButton.disabled = false;
                 signInContainer.classList.add("error-shake");
                 signInButton.classList.remove("box_glass_effect_blue");
                 signInButton.classList.add("box_glass_effect_red");
@@ -35,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     signInContainer.classList.remove("error-shake");
                     signInButton.classList.add("box_glass_effect_blue");
                     signInButton.classList.remove("box_glass_effect_red");
-                }, 2000);
+                }, 1500);
             }
         } catch (err) {
             console.error("Chyba při přihlašování:", err);

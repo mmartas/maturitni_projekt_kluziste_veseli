@@ -650,7 +650,8 @@ function showSection(item) {
 
     // Pokud má content své ID, uložíme ho do URL jako hash (např. admin.html#inbox)
     if (item.content.id) {
-        window.location.hash = item.content.id;
+        // window.location.hash = item.content.id;
+        history.replaceState(null, null, '#' + item.content.id);
     }
 
     if (item.content === dashboardContent) {

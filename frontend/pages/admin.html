@@ -226,19 +226,22 @@
 
                     <section id="customers" class="content segment">
                         <h2 class="title">Seznam zákazníků</h2>
-                        <table class="customers-table text">
-                            <thead>
-                                <tr>
-                                    <th>Počet uskutečněných pronájmů</th>
-                                    <th>Jméno</th>
-                                    <th>Příjmení</th>
-                                    <th>E-mail</th>
-                                    <th>Telefon</th>
-                                    <th>Poslední pronájem</th>
-                                </tr>
-                            </thead>
-                            <tbody id="customersTableBody"></tbody>
-                        </table>
+                        <div class="table-container">
+                            <table class="customers-table text">
+                                <thead>
+                                    <tr>
+                                        <th>Počet uskutečněných pronájmů</th>
+                                        <th>Jméno</th>
+                                        <th>Příjmení</th>
+                                        <th>E-mail</th>
+                                        <th>Telefon</th>
+                                        <th>Poslední pronájem</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customersTableBody"></tbody>
+                            </table>
+                        </div>
+                        
                     </section>
 
                     <section id="edit" class="content">
@@ -338,15 +341,17 @@
                         <h2 class="title">Spravovat admin účet</h2>
                         <form id="changePasswordForm" class="text">
                             <h3>Změna hesla</h3>
-                            <div>
-                                <label>Současné heslo:</label>
-                                <input type="password" id="currentPassword" required>
-                                <i class="fa-solid fa-eye toggle-password" data-target="currentPassword"></i>
-                            </div>
-                            <div>
-                                <label>Nové heslo:</label>
-                                <input type="password" id="newPassword" required>
-                                <i class="fa-solid fa-eye toggle-password" data-target="newPassword"></i>
+                            <div class="change-pass-wrapper">
+                                <div class="row">
+                                    <label>Současné heslo:</label>
+                                    <input type="password" id="currentPassword" required>
+                                    <i class="fa-solid fa-eye toggle-password" data-target="currentPassword"></i>
+                                </div>
+                                <div class="row">
+                                    <label>Nové heslo:</label>
+                                    <input type="password" id="newPassword" required>
+                                    <i class="fa-solid fa-eye toggle-password" data-target="newPassword"></i>
+                                </div>
                             </div>
                             <button title="Změnit heslo" type="submit" class="btns box_glass_effect_green"><i class="fa-solid fa-check"></i></button>
                             <p id="passwordMessage"></p>
