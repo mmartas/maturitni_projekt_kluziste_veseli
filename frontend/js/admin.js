@@ -50,6 +50,10 @@ let currentEventIsBooked = false;
 setupPhoneFormatters();
 setupNameFormatters();
 
+if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+}
+
 // vysunutí meníčka v levém admin panelu po kliknutí na šipku + (otočení šipky animací)
 menuArrow.addEventListener("click", (e) => {
     e.preventDefault();
@@ -93,6 +97,7 @@ function initCalendar() {
         locale: 'cs',
         initialView: 'timeGridWeek',
         height: '100%',
+        nowIndicator: true,
 
         validRange: {
             end: savedLimitDate ? addOneDay(savedLimitDate) : undefined
@@ -653,6 +658,14 @@ function showSection(item) {
         // window.location.hash = item.content.id;
         history.replaceState(null, null, '#' + item.content.id);
     }
+
+    setTimeout(() => {
+        const adminContent = document.getElementById("adminContent");
+        if (adminContent) {
+            adminContent.scrollTop = 0;
+        }
+        window.scrollTo(0, 0);
+    }, 50);
 
     if (item.content === dashboardContent) {
         loadBlocksChart();

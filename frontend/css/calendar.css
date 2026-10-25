@@ -148,3 +148,26 @@
 .fc .fc-popover-body {
     background-color: #ddd9d9;
 }
+
+
+/* 1. Samotná horizontální čára aktuálního času */
+.fc-timegrid-now-indicator-line {
+    border-color: var(--red-color);
+    border-width: 2px;
+    position: relative; /* Důležité pro pozicování šipky */
+}
+
+/* 2. Vlastní trojúhelníková šipka na levé straně čáry */
+.fc-timegrid-now-indicator-line::before {
+    content: '';
+    position: absolute;
+    left: -4px;                  /* Přilepí šipku přesně k levému okraji čáry */
+    top: 50%;
+    transform: translateY(-50%); /* Vycentruje šipku na střed čáry */
+    width: 0;
+    height: 0;
+    border-style: solid;
+    /* Vytvoří šipku mířící doprava (nahoru, vpravo, dolů, vlevo) */
+    border-width: 8px 0 8px 10px; 
+    border-color: transparent transparent transparent var(--red-color);
+}
