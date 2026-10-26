@@ -820,9 +820,6 @@ adminEventsForm.addEventListener("submit", function(e) {
     }
 
     let finalTitle = eventTitleText;
-    // if (selectedType === "booked" && clientNameVal.trim() !== "") {
-    //     finalTitle = `${eventTitleText} (${clientNameVal})`;
-    // }
 
     const startVal = document.getElementById("eventStart").value;
     const endVal = document.getElementById("eventEnd").value;
@@ -855,7 +852,7 @@ adminEventsForm.addEventListener("submit", function(e) {
     .then(res => {
         if(res.success) {
             calendar.refetchEvents(); 
-            resetFormMode(); 
+            resetFormMode();
         }
     })
     .catch(error => console.error('Chyba:', error));

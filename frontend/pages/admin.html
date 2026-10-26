@@ -97,7 +97,7 @@
                 <div class="wrapper">  
                     <section id="dashboard" class="content active">
                         <h2 class="title">Přehled</h2>
-                        <div class="dashboardContainer text">
+                        <div class="content-container text">
                             <div class="">
                                 <p>Rozpis vyplněný do: <span id="endEventsDate"></span></p>
                             </div>
@@ -149,9 +149,9 @@
                     </section>
 
                     <section id="events" class="content">
-                        <div class="events_form_container">
+                        <div class="events_form_container content-container">
                             <h2 class="title">Správa událostí</h2>
-                            <form id="insertEventsForm" class="text">
+                            <form id="insertEventsForm" class="content-container text">
                                 <div class="form_group">
                                     <label>Událost: </label>
                                     <select id="eventTitle" required>
@@ -201,7 +201,7 @@
                                     </button>
                                 </div>
                             </form>
-                            <div class="dateLimit">
+                            <div class="dateLimit text">
                                 <label for="limitDate">Rozpis vyplněný do: </label>
                                 <input type="date" name="limitdate" id="limitDate">
                             </div>
@@ -211,22 +211,22 @@
 
                     <section id="reservations" class="content">
                         <h2 class="title">Seznam rezervací</h2>
-                        <div id="reservationsList">
+                        <div id="reservationsList" class="content-container">
                             
                         </div>
                     </section>
 
                     <section id="inbox" class="content">
                         <h2 class="title">Seznam zpráv</h2>
-                        <div id="messagesContainer" class="text">
+                        <div id="messagesContainer" class="content-container text">
                             
                         </div>
                     </section>
 
                     <section id="customers" class="content">
                         <h2 class="title">Seznam zákazníků</h2>
-                        <div class="table-container">
-                            <table class="customers-table text">
+                        <div class="table-container text">
+                            <table class="customers-table">
                                 <thead>
                                     <tr>
                                         <th>Počet uskutečněných pronájmů</th>
@@ -245,8 +245,7 @@
 
                     <section id="edit" class="content">
                         <h2 class="title">Správa obsahu webu</h2>
-                        <form id="editContentForm">
-
+                        <form id="editContentForm" class="text">
                             <div class="hp-page">
                                 <h3>Hlavní strana</h3>
                                 <div>
@@ -338,9 +337,9 @@
 
                     <section id="admin" class="content">
                         <h2 class="title">Spravovat admin účet</h2>
-                        <form id="changePasswordForm" class="text">
+                        <form id="changePasswordForm" class="content-container text">
                             <h3>Změna hesla</h3>
-                            <div class="change-pass-wrapper">
+                            <div class="content-container">
                                 <div class="row">
                                     <label>Současné heslo:</label>
                                     <input type="password" id="currentPassword" required>
