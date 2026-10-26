@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const calendar = new FullCalendar.Calendar(calendarEl, {
         locale: 'cs',
         initialView: 'timeGridWeek',
+        nowIndicator: true,
 
         validRange: {
             end: savedLimitDate ? savedLimitDate : undefined

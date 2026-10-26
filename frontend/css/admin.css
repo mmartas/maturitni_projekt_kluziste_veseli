@@ -323,7 +323,6 @@ main:has(#dashboard.active) {
     flex-direction: column;
     gap: 0.5rem;
     color: #cbd5e1;
-    font-size: 0.95rem;
 }
 
 .one_message.expanded .message_details {
@@ -331,13 +330,12 @@ main:has(#dashboard.active) {
 }
 
 .one_message.unread {
-    box-shadow: var(--red-inner-shadow); 
-    border-left: 4px solid var(--red-color);
+    box-shadow: var(--green-inner-shadow); 
+    border-left: 4px solid var(--green-color);
 }
 
-.one_message.unread .client_email,
 .one_message.unread .message_subject {
-    font-weight: 900;
+    font-weight: 700;
 }
 
 #inbox {
@@ -369,6 +367,9 @@ main:has(#dashboard.active) {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+.trashCan i {
+    font-size: 1rem;
 }
 /*
     END - INBOX CONTENT
@@ -741,6 +742,8 @@ main:has(#dashboard.active) {
 .customers-table th, .customers-table td {
     padding: 12px 15px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    max-width: 100%;
+    width: 500px;
 }
 
 .customers-table th {
@@ -853,7 +856,8 @@ main:has(#dashboard.active) {
     border-radius: 30px;
     display: flex;
     justify-content: space-between;
-    width: 150px;
+    align-items: center;
+    width: 180px;
     margin-top: auto;
     cursor: pointer;
     transition: all 0.3s ease-in-out;

@@ -522,7 +522,9 @@ function loadEventTypesChart() {
 
 // 3. Třetí graf (Top 5 zákazníků)
 function loadTopCustomersChart() {
-    fetch('http://localhost:3000/api/admin-top-customers')
+    const queryParams = getChartDateRangeParams();
+
+    fetch(`http://localhost:3000/api/admin-top-customers${queryParams}`)
         .then(response => response.json())
         .then(res => {
 
@@ -554,7 +556,13 @@ function loadTopCustomersChart() {
                     datasets: [{
                         label: 'Počet rezervací',
                         data: data,
-                        backgroundColor: blueColor,
+                        backgroundColor: [
+                            yellowColor,
+                            greenColor,
+                            blueColor,
+                            redColor,
+                            '#f59e0b'
+                        ],
                         borderWidth: 0,
                         borderRadius: 4
                     }]
@@ -983,10 +991,10 @@ function loadAdminReservations() {
                         card.innerHTML = `
                             <div class="card-time">${timeRange}</div>
                             <div class="card-client-info">
-                                <strong>${ev.name || ""} ${ev.surname || ""}</strong>
-                                <span><i class="fa-solid fa-phone"></i> ${ev.phone || "neuvedeno"}</span>
-                                <span><i class="fa-solid fa-envelope"></i> ${ev.email || "neuvedeno"}</span>
-                                <span><i class="fa-solid fa-sticky-note"></i> ${ev.note || "nevyplněno"}</span>
+                                <span>${ev.name} ${ev.surname}</span>
+                                <span><i class="fa-solid fa-phone"></i> ${ev.phone}</span>
+                                <span><i class="fa-solid fa-envelope"></i> ${ev.email}</span>
+                                <span><i class="fa-solid fa-sticky-note"></i> ${ev.note || "- - - - -"}</span>
                             </div>
                         `;
                     } else {
@@ -1041,7 +1049,7 @@ function loadCustomers() {
                 }
 
                 tr.innerHTML = `
-                    <td><strong>${c.total_orders || c.order_count}</strong></td>
+                    <td>${c.total_orders || c.order_count}</td>
                     <td>${c.name || ''}</td>
                     <td>${c.surname || ''}</td>
                     <td>${c.email || 'Neuvedeno'}</td>

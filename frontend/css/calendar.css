@@ -112,6 +112,9 @@
 .past-event, .past-event * {
     cursor: default !important;
 }
+.fc-event {
+    border: none;
+}
 /* víkend */
 .fc-day-sat, 
 .fc-day-sun {
@@ -149,25 +152,26 @@
     background-color: #ddd9d9;
 }
 
-
-/* 1. Samotná horizontální čára aktuálního času */
+/*šipka v kaledáři ukazující aktuální čas*/
 .fc-timegrid-now-indicator-line {
     border-color: var(--red-color);
     border-width: 2px;
-    position: relative; /* Důležité pro pozicování šipky */
+    position: relative;
 }
-
-/* 2. Vlastní trojúhelníková šipka na levé straně čáry */
 .fc-timegrid-now-indicator-line::before {
     content: '';
     position: absolute;
-    left: -4px;                  /* Přilepí šipku přesně k levému okraji čáry */
+    left: -4px;                  
     top: 50%;
-    transform: translateY(-50%); /* Vycentruje šipku na střed čáry */
+    transform: translateY(-50%);
     width: 0;
     height: 0;
     border-style: solid;
-    /* Vytvoří šipku mířící doprava (nahoru, vpravo, dolů, vlevo) */
     border-width: 8px 0 8px 10px; 
     border-color: transparent transparent transparent var(--red-color);
+}
+.fc-timegrid-now-indicator-arrow {
+    border-color: var(--red-color) !important;
+    border-bottom-color: transparent !important;
+    border-top-color: transparent !important;
 }

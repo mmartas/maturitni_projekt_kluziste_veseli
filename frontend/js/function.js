@@ -162,8 +162,8 @@ function loadMessages() {
             messageDiv.innerHTML = `
                 <div class="message_preview">
                     <span class="message_subject">Potvrzení rezervace</span>
+                    <span class="message_body">${msg.name} ${msg.surname}</span>
                     <span class="client_email">${msg.email}</span>
-                    <span class="message_body">${msg.note || 'Bez poznámky'}</span>
                     <a class="trashCan box_glass_effect_red" href="#"><i class="fa-solid fa-trash-can"></i></a>
                 </div>
                 <div class="message_details">
