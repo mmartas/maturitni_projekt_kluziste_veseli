@@ -45,44 +45,44 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="#" id="dashboardIcon" class="active menu_icons">
+                                <a href="#" id="dashboardIcon" class="active menu_icon">
                                     <i class="fa-solid fa-chart-line"></i>
                                 </a>
                                 <a href="#">Přehled</a>
                             </li>
                             <li>
-                                <a href="#" id="eventsIcon" class="menu_icons">
+                                <a href="#" id="eventsIcon" class="menu_icon">
                                     <i class="fa-regular fa-calendar"></i>
                                 </a>
                                 <a href="#">Události</a>
                             </li>
                             <li>
-                                <a href="#" id="reservationsIcon" class="menu_icons">
+                                <a href="#" id="reservationsIcon" class="menu_icon">
                                     <i class="fa-regular fa-calendar-check"></i>
                                 </a>
                                 <a href="#">Rezervace</a>
                             </li>
                             <li>
-                                <a href="#" id="inboxIcon" class="menu_icons">
+                                <a href="#" id="inboxIcon" class="menu_icon">
                                     <span id="unreadMessagesIcon"></span>
                                     <i class="fa-regular fa-envelope"></i>
                                 </a>
                                 <a href="#">Zprávy</a>
                             </li>
                             <li>
-                                <a href="#" id="customersIcon" class="menu_icons">
+                                <a href="#" id="customersIcon" class="menu_icon">
                                     <i class="fa-solid fa-people-roof"></i>
                                 </a>
                                 <a href="#">Zákazníci</a>
                             </li>
                             <li>
-                                <a href="#" id="editIcon" class="menu_icons">
+                                <a href="#" id="editIcon" class="menu_icon">
                                     <i class="fa-solid fa-pen"></i>
                                 </a>
                                 <a href="">Editování</a>
                             </li>
                             <li>
-                                <a href="#" id="adminUserIcon" class="menu_icons">
+                                <a href="#" id="adminUserIcon" class="menu_icon">
                                     <i class="fa-solid fa-user"></i>
                                 </a>
                                 <a href="#">Admin</a>
@@ -94,12 +94,11 @@
             
 
             <section id="adminContent" class="box_glass_effect">
-                <div class="wrapper">
-                    
-                    <section id="dashboard" class="content active text segment">
+                <div class="wrapper">  
+                    <section id="dashboard" class="content active">
                         <h2 class="title">Přehled</h2>
-                        <div class="dashboardContainer">
-                            <div class="segment">
+                        <div class="dashboardContainer text">
+                            <div class="">
                                 <p>Rozpis vyplněný do: <span id="endEventsDate"></span></p>
                             </div>
                             <div class="chart-filters">
@@ -210,21 +209,21 @@
                         <div id="calendar" class="box_glass_effect"></div>
                     </section>
 
-                    <section id="reservations" class="content segment">
+                    <section id="reservations" class="content">
                         <h2 class="title">Seznam rezervací</h2>
                         <div id="reservationsList">
                             
                         </div>
                     </section>
 
-                    <section id="inbox" class="content segment">
+                    <section id="inbox" class="content">
                         <h2 class="title">Seznam zpráv</h2>
-                        <div id="messagesContainer" class="segment text">
+                        <div id="messagesContainer" class="text">
                             
                         </div>
                     </section>
 
-                    <section id="customers" class="content segment">
+                    <section id="customers" class="content">
                         <h2 class="title">Seznam zákazníků</h2>
                         <div class="table-container">
                             <table class="customers-table text">
@@ -345,12 +344,12 @@
                                 <div class="row">
                                     <label>Současné heslo:</label>
                                     <input type="password" id="currentPassword" required>
-                                    <i class="fa-solid fa-eye toggle-password" data-target="currentPassword"></i>
+                                    <i class="fa-solid fa-eye password-eye-icon" data-target="currentPassword"></i>
                                 </div>
                                 <div class="row">
                                     <label>Nové heslo:</label>
                                     <input type="password" id="newPassword" required>
-                                    <i class="fa-solid fa-eye toggle-password" data-target="newPassword"></i>
+                                    <i class="fa-solid fa-eye password-eye-icon" data-target="newPassword"></i>
                                 </div>
                             </div>
                             <button title="Změnit heslo" type="submit" class="big-action-button box_glass_effect_green"><i class="fa-solid fa-check"></i></button>

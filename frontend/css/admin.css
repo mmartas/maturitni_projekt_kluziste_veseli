@@ -40,86 +40,31 @@ main {
     transition: all 0.3s ease-in-out;
 }
 
-/*
+input, select, textarea {
+    outline: none;
+    padding: 0.3rem;
+}
+
+.box_glass_effect_blue:hover {
+    background-color: var(--blue-color);
+}
+.box_glass_effect_red:hover {
+    background-color: var(--red-color);
+}
+.box_glass_effect_green:hover {
+    background-color: var(--green-color);
+}
+
+.password-eye-icon {
+    position: absolute;
+    right: 4px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: color 0.2s ease;
+}
+/********************************************
     MENU START
-*/
-#adminMenu {
-    width: 180px;
-    height: 100%;
-    color: white;
-}
-
-#adminMenuWrapper #adminMenu .admin_menu_inside {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-#adminMenuWrapper #adminMenu ul {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    height: 100%;
-}
-
-#adminMenuWrapper #adminMenu ul li {
-    list-style-type: none;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-#adminMenuArrow i.active {
-    transform: rotate(180deg);
-}
-
-#adminRefreshArrow {
-    transition: transform 0.3s ease-in-out;
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: var(--white-color);
-    flex-shrink: 0;
-}
-
-
-
-#adminMenu ul li:last-child {
-    margin-top: auto;
-}
-
-#adminMenu ul li a {
-    text-decoration: none;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    position: relative;
-}
-
-#adminMenu ul li:not(:first-child) a.active {
-    color: var(--red-color);
-}
-
-#adminMenu ul li:nth-child(2) i, #adminMenu ul li:nth-child(5) i {
-    padding-left: 2px;
-}
-#adminMenu ul li:nth-child(3) i, #adminMenu ul li:nth-child(4) i, #adminMenu ul li:nth-child(7) i, #adminMenu ul li:nth-child(8) i {
-    padding-left: 3px;
-}
-#adminMenu ul li .menu_icons {
-    width: 34px;
-}
-#adminMenu ul li .menu_icons i {
-    font-size: 1.6rem;
-    transition: all 0.3s ease-in-out;
-}
-#adminMenu ul li .menu_icons i:hover {
-    transform: scale(1.1);
-    color: var(--red-color);
-}
-
+********************************************/
 #adminMenuWrapper {
     width: 80px;
     overflow: hidden;
@@ -132,13 +77,96 @@ main {
     width: 226px;
 }
 
-#adminMenu ul.text li a:not(.menu_icons):not(.small-action-button) {
+#adminMenuWrapper #adminMenu {
+    width: 180px;
+    height: 100%;
+    color: white;
+}
+
+#adminMenuWrapper #adminMenu .admin_menu_inside {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#adminMenuWrapper #adminMenu .admin_menu_inside ul {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    height: 100%;
+}
+
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li {
+    list-style-type: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li #adminMenuArrow i.active {
+    transform: rotate(180deg);
+}
+
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li #adminRefreshArrow {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--white-color);
+    flex-shrink: 0;
+    transition: transform 0.3s ease-in-out;
+}
+
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li:last-child {
+    margin-top: auto;
+}
+
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li a {
+    text-decoration: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+}
+
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li:not(:first-child) a.active {
+    color: var(--red-color);
+}
+
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li:nth-child(2) i,
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li:nth-child(5) i {
+    padding-left: 2px;
+}
+
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li:nth-child(3) i,
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li:nth-child(4) i,
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li:nth-child(7) i,
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li:nth-child(8) i {
+    padding-left: 3px;
+}
+
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li .menu_icon {
+    width: 34px;
+}
+
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li .menu_icon i {
+    font-size: 1.6rem;
+    transition: all 0.3s ease-in-out;
+}
+
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li .menu_icon i:hover {
+    transform: scale(1.1);
+    color: var(--red-color);
+}
+
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li a:not(.menu_icon):not(.small-action-button) {
     position: relative;
     display: inline-block;
     text-decoration: none;
 }
 
-#adminMenu ul.text li a:not(.menu_icons):not(.small-action-button)::after {
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li a:not(.menu_icon):not(.small-action-button)::after {
     content: '';
     position: absolute;
     width: 100%;
@@ -151,21 +179,18 @@ main {
     transition: transform 0.3s ease-in-out;
 }
 
-#adminMenu ul.text li .menu_icons:hover + a::after,
-#adminMenu ul.text li:hover a:not(.menu_icons):not(.small-action-button)::after {
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li .menu_icon:hover + a::after,
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li .menu_icon.active + a::after,
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li:hover a:not(.menu_icon):not(.small-action-button)::after {
     transform: scaleX(1);
 }
-
-#adminMenu ul.text li .menu_icons.active + a::after {
-    transform: scaleX(1);
-}
-/*
+/**************************************************
     MENU END
-*/
+**************************************************/
 
-/*
+/*************************************************
     CONTENT START
-*/
+*************************************************/
 #adminContent {
     flex: 1;
     min-width: 0;
@@ -177,6 +202,7 @@ main {
 .admin_main_container:has(#adminMenuWrapper.active) #adminContent {
     margin-left: calc(226px + 1rem);
 }
+
 #adminContent .wrapper {
     width: 100%;
     height: 100%;
@@ -188,25 +214,19 @@ main {
     color: var(--white-color);
 }
 
-#adminContent .content {
+#adminContent .wrapper .content {
     display: none;
     width: 100%;
     height: 100%;
-}
-#adminContent .content.active {
-    display: flex;
     gap: 1rem;
-}
-
-.segment {
-    width: 100%;
-    display: flex;
     flex-direction: column;
-    gap: 1rem;
 }
-/*
+#adminContent .wrapper .content.active {
+    display: flex;
+}
+/*******************************************
     CONTENT END
-*/
+*******************************************/
 
 /*
     START - DASHBOARD CONTENT
@@ -274,11 +294,6 @@ main:has(#dashboard.active) {
     flex-wrap: wrap;
     align-items: center;
 }
-.chart-filters input, .chart-filters select {
-    outline: none;
-    padding: 0.3rem;
-}
-
 /*
     END - DASHBOARD CONTENT
 */
@@ -335,12 +350,6 @@ main:has(#dashboard.active) {
     font-weight: 700;
 }
 
-#inbox {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
 #unreadMessagesIcon {
     font-size: 0.7rem;
     align-items: center;
@@ -369,6 +378,10 @@ main:has(#dashboard.active) {
     padding: 1rem;
 }
 
+#events.active {
+    flex-direction: row;
+}
+
 .events_form_container {
     width: 30%;
     display: flex;
@@ -393,10 +406,6 @@ main:has(#dashboard.active) {
     justify-content: center;
     gap: 0.5rem;
 }
-#insertEventsForm input, #insertEventsForm select, .dateLimit input {
-    outline: none;
-    padding: 0.3rem;
-}
 
 .fc {
     width: 70% !important;
@@ -405,26 +414,19 @@ main:has(#dashboard.active) {
 .clientInfo {
     display: none !important;
 }
-
 .clientInfo.active {
     display: flex !important;
-}
-
-.dateLimit {
-    margin-top: auto;
 }
 
 #deleteBtn, #cancelBtn {
     display: none;
 }
 
+.dateLimit {
+    margin-top: auto;
+}
 
-#deleteBtn:hover {
-    background-color: var(--red-color);
-}
-#cancelBtn:hover, #filterChartsBtn:hover {
-    background-color: var(--blue-color);
-}
+
 .fc-printButton-button::before {
     font-family: "Font Awesome 6 Free";
     font-weight: 900;
@@ -765,10 +767,7 @@ main:has(#dashboard.active) {
     flex-direction: column;
     gap: 1rem;
 }
-#signInForm input {
-    outline: none;
-    padding: 0.3rem;
-}
+
 #signInForm label {
     display: flex;
     flex-direction: column;
@@ -791,16 +790,12 @@ main:has(#dashboard.active) {
     width: 100%;
 }
 
-.password-container i {
-    position: absolute;
-    right: 4px;
-    cursor: pointer;
+
+#signInForm .password-eye-icon {
     color: var(--blue-color);
-    opacity: 0.7;
     font-size: 1.1rem;
-    transition: color 0.2s ease;
 }
-.password-container i.fa-eye-slash {
+#signInForm .password-eye-icon.fa-eye-slash {
     right: 3px;
 }
 @keyframes shake {
@@ -812,12 +807,7 @@ main:has(#dashboard.active) {
     100% { transform: translateX(0); }
 }
 
-.box_glass_effect_blue:hover {
-    background-color: var(--blue-color);
-}
-.box_glass_effect_red:hover {
-    background-color: var(--red-color);
-}
+
 /* Třída, kterou JavaScript přidá při špatných údajích */
 .error-shake {
     border-color: var(--red-color) !important;
@@ -832,10 +822,6 @@ main:has(#dashboard.active) {
 /*
     START - ADMIN USER PAGE
 */
-#admin {
-    display: flex;
-    flex-direction: column;
-}
 #logOutButton {
     color: var(--white-color);
     padding: 0.5rem 1rem;
@@ -849,9 +835,7 @@ main:has(#dashboard.active) {
     cursor: pointer;
     transition: all 0.3s ease-in-out;
 }
-#logOutButton:hover {
-    background-color: var(--red-color);
-}
+
 #logOutButton i {
     transform: rotate(180deg);
 }
@@ -870,8 +854,6 @@ main:has(#dashboard.active) {
     gap: 0.5rem;
 }
 #changePasswordForm input {
-    outline: none;
-    padding: 0.3rem;
     padding-right: 1.6rem !important;
 }
 #changePasswordForm .row {
@@ -880,14 +862,10 @@ main:has(#dashboard.active) {
     align-items: center;
     position: relative;
 }
-#changePasswordForm .row i {
-    position: absolute;
-    right: 4px;
+#changePasswordForm .password-eye-icon {
     color: var(--green-color);
-    cursor: pointer;
-    opacity: 0.7;
 }
-#changePasswordForm .row i.fa-eye-slash {
+#changePasswordForm .password-eye-icon.fa-eye-slash {
     right: 3px;
 }
 
@@ -895,23 +873,13 @@ main:has(#dashboard.active) {
 /*
     END - ADMIN USER PAGE
 */
-/*admin změna hesla, editování obsahu webu, events-kalendář*/
-#changePasswordForm button:hover, #editContentForm button:hover, #submitBtn:hover {
-    background-color: var(--green-color);
-}
+
 /*
     START - EDIT PAGE
 */
-#edit {
-    display: flex;
-    flex-direction: column;
-}
 #editContentForm {
     display: flex;
     flex-wrap: wrap;
-}
-#editContentForm textarea {
-    outline: none;
 }
 /*
     END - EDIT PAGE

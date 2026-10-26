@@ -622,9 +622,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-const togglePasswordIcons = document.querySelectorAll('.toggle-password');
+const passwordEyeIcon = document.querySelectorAll('.password-eye-icon');
 
-togglePasswordIcons.forEach(icon => {
+passwordEyeIcon.forEach(icon => {
     icon.addEventListener('click', () => {
         // Zjistíme, jaké ID má input, který patří k tomuto oku
         const targetId = icon.getAttribute('data-target');
