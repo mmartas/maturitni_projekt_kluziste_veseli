@@ -14,7 +14,7 @@ main {
     gap: 1rem;
 }
 
-.btns {
+.big-action-button {
     color: white;
     padding: 1rem;
     font-size: 1.5rem;
@@ -22,6 +22,21 @@ main {
     width: 60px;
     height: 60px;
     cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.small-action-button {
+    width: 34px;
+    height: 34px;
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center !important;
+    color: var(--white-color);
+    text-decoration: none;
+}
+.small-action-button i {
+    font-size: 1rem;
     transition: all 0.3s ease-in-out;
 }
 
@@ -68,16 +83,7 @@ main {
     flex-shrink: 0;
 }
 
-.icon_arrow_menu_refresh {
-    width: 34px;
-    height: 34px;
-    border-radius: 100%;
-    justify-content: center !important;
-}
-.icon_arrow_menu_refresh i {
-    font-size: 1rem;
-    transition: all 0.3s ease-in-out;
-}
+
 
 #adminMenu ul li:last-child {
     margin-top: auto;
@@ -126,13 +132,13 @@ main {
     width: 226px;
 }
 
-#adminMenu ul.text li a:not(.menu_icons):not(.icon_arrow_menu_refresh) {
+#adminMenu ul.text li a:not(.menu_icons):not(.small-action-button) {
     position: relative;
     display: inline-block;
     text-decoration: none;
 }
 
-#adminMenu ul.text li a:not(.menu_icons):not(.icon_arrow_menu_refresh)::after {
+#adminMenu ul.text li a:not(.menu_icons):not(.small-action-button)::after {
     content: '';
     position: absolute;
     width: 100%;
@@ -146,7 +152,7 @@ main {
 }
 
 #adminMenu ul.text li .menu_icons:hover + a::after,
-#adminMenu ul.text li:hover a:not(.menu_icons):not(.icon_arrow_menu_refresh)::after {
+#adminMenu ul.text li:hover a:not(.menu_icons):not(.small-action-button)::after {
     transform: scaleX(1);
 }
 
@@ -273,15 +279,6 @@ main:has(#dashboard.active) {
     padding: 0.3rem;
 }
 
-#filterChartsBtn {
-    border-radius: 30px;
-    padding: 0.2rem 0.5rem;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-}
-
-
-
 /*
     END - DASHBOARD CONTENT
 */
@@ -360,16 +357,6 @@ main:has(#dashboard.active) {
 }
 .trashCan {
     margin-left: auto;
-    color: var(--white-color);
-    border-radius: 100%;
-    width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.trashCan i {
-    font-size: 1rem;
 }
 /*
     END - INBOX CONTENT
