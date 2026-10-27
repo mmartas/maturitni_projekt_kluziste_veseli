@@ -62,6 +62,22 @@ input, select, textarea {
     opacity: 0.7;
     transition: color 0.2s ease;
 }
+
+.dynamic-form-message {
+    padding: 0.2rem 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease-in-out;
+    text-align: center;
+    font-size: 0.8rem;
+}
+.dynamic-form-message.success {
+    border: 1px solid var(--green-color);
+    color: var(--green-color);
+}
+.dynamic-form-message.error {
+    border: 1px solid var(--red-color);
+    color: var(--red-color);
+}
 /********************************************
     MENU START
 ********************************************/

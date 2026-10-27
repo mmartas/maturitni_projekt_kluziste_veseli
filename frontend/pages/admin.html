@@ -189,15 +189,12 @@
                                 <div class="form_buttons">
                                     <button title="Přidat událost" type="submit" id="submitBtn" class="big-action-button box_glass_effect_green">
                                         <i class="fa-solid fa-check"></i>
-                                        
                                     </button>
                                     <button title="Odstranit událost" type="button" id="deleteBtn" class="big-action-button box_glass_effect_red">
                                         <i class="fa-solid fa-trash-can"></i>
-                                        
                                     </button>
                                     <button title="Zrušit úpravy" type="button" id="cancelBtn" class="big-action-button box_glass_effect_blue">
                                         <i class="fa-solid fa-times"></i>
-                                        
                                     </button>
                                 </div>
                             </form>
@@ -332,7 +329,6 @@
 
                             <button title="Uložit změny" type="submit" class="big-action-button box_glass_effect_green"><i class="fa-solid fa-check"></i></button>
                         </form>
-                        <p id="contentMsg"></p>
                     </section>
 
                     <section id="admin" class="content">
@@ -351,8 +347,10 @@
                                     <i class="fa-solid fa-eye password-eye-icon" data-target="newPassword"></i>
                                 </div>
                             </div>
-                            <button title="Změnit heslo" type="submit" class="big-action-button box_glass_effect_green"><i class="fa-solid fa-check"></i></button>
-                            <p id="passwordMessage"></p>
+                            <div class="row" id="changePasswordFormSubmitContainer">
+                                <button title="Změnit heslo" type="submit" class="big-action-button box_glass_effect_green"><i class="fa-solid fa-check"></i></button>
+                            </div>
+                            
                         </form>
                             
                         <a href="/logout" id="logOutButton" class="box_glass_effect_red text">

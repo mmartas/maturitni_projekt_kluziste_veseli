@@ -276,3 +276,24 @@ function setupNameFormatters() {
         }
     });
 }
+
+// zobrazení chybové nebo úspěšné hlášky při formulářích
+function showFormMessage(formElement, text, isSuccess = true) {
+    const existingMsg = formElement.querySelector('.dynamic-form-message');
+    if (existingMsg) {
+        existingMsg.remove();
+    }
+
+    const msgEl = document.createElement('div');
+    msgEl.className = `dynamic-form-message ${isSuccess ? 'success' : 'error'} text`;
+    msgEl.textContent = text;
+
+    formElement.appendChild(msgEl);
+
+    setTimeout(() => {
+        msgEl.style.opacity = '0';
+        setTimeout(() => {
+            msgEl.remove();
+        }, 300); 
+    }, 2000);
+}

@@ -32,6 +32,8 @@ const submitBtn = document.getElementById("submitBtn");
 const limitDateInput = document.getElementById("limitDate");
 const dashboardLimitDate = document.getElementById("endEventsDate");
 
+const changePasswordFormSubmitContainer = document.getElementById("changePasswordFormSubmitContainer");
+
 const bookedClientName = document.getElementById("bookedClientName");
 const clientInfo = document.querySelectorAll(".clientInfo");
 let adminBookedClientName = document.getElementById("adminBookedClientName");
@@ -801,6 +803,8 @@ cancelBtn.addEventListener("click", function() {
 adminEventsForm.addEventListener("submit", function(e) {
     e.preventDefault();
 
+    const isEditing = Boolean(currentEditingId);
+
     const selectedType = document.getElementById("eventTitle").value;
     const clientNameVal = adminBookedClientName.value;
     const clientSurnameVal = document.getElementById("adminBookedClientSurname").value;
@@ -853,9 +857,18 @@ adminEventsForm.addEventListener("submit", function(e) {
         if(res.success) {
             calendar.refetchEvents(); 
             resetFormMode();
+
+            const successText = isEditing 
+                ? "Změny byly úspěšně uloženy" 
+                : "Nová událost byla úspěšně vytvořena";
+
+            showFormMessage(adminEventsForm, successText, true)
+        } else {
+            showFormMessage(adminEventsForm, "Akce se nezdařila.", false)
         }
     })
     .catch(error => console.error('Chyba:', error));
+    showFormMessage(adminEventsForm, "Chyba připojení k serveru", false);
 });
 
 // tlačítko pro smazání rezervace ve formuláři
@@ -1063,41 +1076,37 @@ function loadCustomers() {
 
 
 const changePasswordForm = document.getElementById('changePasswordForm');
-const passwordMessage = document.getElementById('passwordMessage');
 
-if (changePasswordForm) {
-    changePasswordForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+changePasswordForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-        const currentPassword = document.getElementById('currentPassword').value;
-        const newPassword = document.getElementById('newPassword').value;
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
 
-        try {
-            const response = await fetch('/api/change-password', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ currentPassword, newPassword })
-            });
+    try {
+        const response = await fetch('/api/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ currentPassword, newPassword })
+        });
 
-            const data = await response.json();
+        const data = await response.json();
 
-            if (data.success) {
-                passwordMessage.style.color = 'green';
-                passwordMessage.textContent = 'Heslo bylo úspěšně změněno!';
-                changePasswordForm.reset();
-            } else {
-                passwordMessage.style.color = 'red';
-                passwordMessage.textContent = 'Chyba: ' + data.error;
-            }
-        } catch (err) {
-            console.error('Chyba při komunikaci se serverem:', err);
-            passwordMessage.style.color = 'red';
-            passwordMessage.textContent = 'Chyba připojení k serveru.';
+        if (data.success) {
+            changePasswordForm.reset();
+            showFormMessage(changePasswordFormSubmitContainer, "Heslo bylo úspěšně změněno", true);
+        } else {
+            console.log(data.error);
+            showFormMessage(changePasswordFormSubmitContainer, "Heslo se nepodařilo změnit", false);
         }
-    });
-}
+    } catch (err) {
+        console.error('Chyba při komunikaci se serverem:', err);
+        showFormMessage(changePasswordFormSubmitContainer, "Chyba na straně serveru", false);
+    }
+});
+
 
 
 
@@ -1126,21 +1135,25 @@ const contentKeys = [
 ];
 
 // 1. Načtení dat do formuláře při otevření adminu
+let originalContentValues = {};
+
 async function loadAdminContent() {
     try {
         const res = await fetch('/api/content');
         const data = await res.json();
         
         if (data.success && data.content) {
+            
             contentKeys.forEach(key => {
                 const textarea = document.getElementById(key);
                 if (textarea && data.content[key] !== undefined) {
-                    textarea.value = data.content[key]; // Do textarea píšeme čistý text/HTML kód
+                    textarea.value = data.content[key];
+                    originalContentValues[key] = data.content[key];
                 }
             });
         }
     } catch (err) {
-        console.error('Chyba při načítání obsahu:', err);
+        console.error('Chyba při načítání obsahu pro admin:', err);
     }
 }
 
@@ -1148,33 +1161,55 @@ loadAdminContent();
 
 // 2. Uložení všech změn po odeslání formuláře
 const editContentForm = document.getElementById('editContentForm');
-const contentMsg = document.getElementById('contentMsg');
 
-if (editContentForm) {
-    editContentForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
 
-        try {
-            // Projdeme v cyklu každé políčko a pošleme ho na server
-            for (const key of contentKeys) {
-                const textValue = document.getElementById(key).value;
+editContentForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-                await fetch('/api/content/update', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        section_key: key, 
-                        content: textValue 
-                    })
-                });
-            }
-
-            contentMsg.style.color = 'green';
-            contentMsg.textContent = 'Všechny změny byly úspěšně uloženy!';
-        } catch (err) {
-            console.error('Chyba při ukládání:', err);
-            contentMsg.style.color = 'red';
-            contentMsg.textContent = 'Chyba při komunikaci se serverem.';
+    let hasChanges = false;
+    for (const key of contentKeys) {
+        const textarea = document.getElementById(key);
+        if (textarea && textarea.value !== originalContentValues[key]) {
+            hasChanges = true;
+            break;
         }
-    });
-}
+    }
+
+    if (!hasChanges) {
+        showFormMessage(editContent, "Nebyla provedena žádná změna", false);
+        return;
+    }
+
+    try {
+        let allSuccess = true;
+        
+        for (const key of contentKeys) {
+            const textValue = document.getElementById(key).value;
+
+            const response = await fetch('/api/content/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    section_key: key, 
+                    content: textValue 
+                })
+            });
+
+            const data = await response.json();
+            if(!data.success) {
+                allSuccess = false;
+                break;
+            }
+        }
+
+        if (allSuccess) {
+            showFormMessage(editContent, "Změny byly úspěšně uloženy", true);
+        } else {
+            showFormMessage(editContent, "Některé změny se nepodařilo uložit", false);
+        }
+
+    } catch (err) {
+        console.error('Chyba při ukládání:', err);
+        showFormMessage(editContent, "Chyba připojení k serveru", false);
+    }
+});
