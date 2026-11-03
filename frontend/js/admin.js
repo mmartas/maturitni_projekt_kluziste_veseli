@@ -40,11 +40,10 @@ let adminBookedClientName = document.getElementById("adminBookedClientName");
 
 let changeEventTitle = document.getElementById("eventTitle");
 
-let savedLimitDate = null; // Globální proměnná pro uložení limitu
+let savedLimitDate = null;
 
 let calendar;
 let calendarInitialized = false;
-
 
 let currentEditingId = null;
 let currentEventIsBooked = false;
@@ -115,12 +114,11 @@ function initCalendar() {
 
         dayMaxEvents: 3,
 
-        // 1. Definice vlastního tlačítka
         customButtons: {
             printButton: {
             text: "",
             click: function() {
-                window.print(); // Spustí tiskový dialog prohlížeče
+                window.print();
             }
             }
         },
@@ -258,12 +256,10 @@ function initCalendar() {
     calendarInitialized = true;
 }
 
-// 1. Načtení CSS proměnné z :root (document.documentElement)
 const greenColor = getComputedStyle(document.documentElement)
     .getPropertyValue('--green-color-lighter')
     .trim();
 
-// Příklad s případnou další proměnnou (např. pro červenou)
 const redColor = getComputedStyle(document.documentElement)
     .getPropertyValue('--red-color-lighter')
     .trim() || '#dc3545';
@@ -276,7 +272,6 @@ const yellowColor = getComputedStyle(document.documentElement)
     .getPropertyValue('--yellow-color-lighter')
     .trim();
 
-// 1. Event listenery, které zajistí, že se prvky navzájem čistí při změně
 document.addEventListener("DOMContentLoaded", () => {
     const startInput = document.getElementById('chartStartDate');
     const endInput = document.getElementById('chartEndDate');
@@ -305,7 +300,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function getChartDateRangeParams() {
-    // Správná ID podle tvého HTML kódu
     const startInput = document.getElementById('chartStartDate');
     const endInput = document.getElementById('chartEndDate');
     const seasonSelect = document.getElementById('filterSeason');
@@ -628,16 +622,15 @@ const passwordEyeIcon = document.querySelectorAll('.password-eye-icon');
 
 passwordEyeIcon.forEach(icon => {
     icon.addEventListener('click', () => {
-        // Zjistíme, jaké ID má input, který patří k tomuto oku
+        
         const targetId = icon.getAttribute('data-target');
         const passwordInput = document.getElementById(targetId);
 
         if (passwordInput) {
-            // Přepneme typ inputu (password <-> text)
+            
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
 
-            // Přepneme ikonu FontAwesome (oko / přeškrtnuté oko)
             icon.classList.toggle('fa-eye');
             icon.classList.toggle('fa-eye-slash');
         }

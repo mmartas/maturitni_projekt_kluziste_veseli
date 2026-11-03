@@ -15,26 +15,21 @@ const path = require('path');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 
-// 1. ZDE JE KLÍČOVÉ NASTAVENÍ:
-// Místo toho, abychom zpřístupnili celý hlavní adresář, 
-// zpřístupníme veřejně jen konkrétní složky pro styly (css), skripty (js) a login.html (nebo veřejné assety)
-app.use(express.json()); // Aby server rozuměl JSON datům z fetch požadavků
+app.use(express.json()); // server rozumí JSON datům z fetch požadavků
 
 app.use('/css', express.static(path.join(__dirname, '../frontend/css')));
 app.use('/js', express.static(path.join(__dirname, '../frontend/js')));
 
-// Pokud chceš, aby byl login.html volně přístupný, můžeš ho dát do samostatné routy:
 app.get('/login.html', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pages/login.html'));
 });
 
-// A totéž pro kořenový odkaz (když někdo přejde na hlavní stránku, hodíme ho na login)
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
 
-// 2. NASTAVENÍ SESSION (musí být před chráněnými routami)
+// nastavení session
 app.use(session({
     secret: 'tady-si-zvol-nejaky-silny-tajny-klic',
     resave: false,
@@ -42,20 +37,15 @@ app.use(session({
     cookie: { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-
-// 3. BEZPEČNOSTNÍ BRÁNA (Middleware)
-// Tato funkce zkontroluje, jestli je uživatel přihlášený
+// kontrola jestli je uživatel přihlášený
 function requireAuth(req, res, next) {
     if (req.session && req.session.isAdmin) {
-        return next(); // Je přihlášený -> pokračuj dál
+        return next();
     }
-    // Není přihlášený -> šup s ním na login
     res.redirect('/login.html');
 }
 
-
-// 4. ZABEZPEČENÁ ROUTA PRO ADMIN PANEL
-// Tady chránezíme admin.html. Nikdo se sem nedostane bez platné session!
+// nikdo se nedostane na admin.html pokud není přihlášený
 app.get('/admin.html', requireAuth, (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/pages/admin.html'));
 });
@@ -108,22 +98,17 @@ function formatEmailDate(dateString) {
 // funkce pro přepočet a uložení všech statistik pronájmů
 async function updateRentCounts() {
     try {
-        // 1. Celkový počet pronájmů (všechny eventy s type = 'rent')
         const [allRows] = await pool.query("SELECT COUNT(*) AS total FROM events WHERE type = 'rent' AND start >= CURDATE()");
         const allCount = allRows[0].total;
 
-        // 2. Obsazené pronájmy (type = 'rent' a zároveň k nim existuje rezervace)
         const [bookedRows] = await pool.query(`
             SELECT COUNT(*) AS total FROM events e
             JOIN reservations r ON e.id = r.event_id
             WHERE e.type = 'rent' AND e.start >= CURDATE()
         `);
         const bookedCount = bookedRows[0].total;
-
-        // 3. Volné pronájmy = Celkem mínus Obsazené
         const freeCount = allCount - bookedCount;
 
-        // 4. Uložíme všechny tři hodnoty do tabulky setting
         await pool.query(
             "UPDATE setting SET count_free_rent = ?, count_booked_rent = ?, count_all_rent = ? WHERE id = 1",
             [freeCount, bookedCount, allCount]
@@ -132,13 +117,11 @@ async function updateRentCounts() {
         console.error("Chyba při aktualizaci statistik pronájmů:", err);
     }
 }
-
 updateRentCounts();
 
 // 1. API Endpoint pro FullCalendar (vrátí události z databáze do kalendáře)
 app.get('/api/events', async (req, res) => {
     try {
-        // zjišťování jestli je k eventu už rezervace
         const query = `
             SELECT e.id, e.title, e.start, e.end, e.type, 
             IF(r.id IS NOT NULL, 1, 0) AS booked,
@@ -151,7 +134,6 @@ app.get('/api/events', async (req, res) => {
         `;
         const [rows] = await pool.query(query);
         
-        // FullCalendar očekává pole objektů, kde booked pošleme v extendedProps
         const formattedRows = rows.map(row => ({
             id: row.id,
             title: row.booked ? `Obsazeno: ${row.client_surname}` : row.title,
@@ -159,7 +141,7 @@ app.get('/api/events', async (req, res) => {
             end: row.end,
             extendedProps: {
                 type: row.type,
-                booked: row.booked === 1, // True/False pro snadné rozhodování na frontendu
+                booked: row.booked === 1,
                 client_name: row.client_name,
                 client_surname: row.client_surname,
                 client_phone: row.client_phone,
@@ -179,21 +161,18 @@ app.post('/api/events', async (req, res) => {
     try {
         const { title, start, end, type, name, surname, phone, email, date } = req.body;
 
-        // 1. Vložíme událost do tabulky events a získáme její ID
         const [result] = await pool.query(
             "INSERT INTO events (title, start, end, type) VALUES (?, ?, ?, ?)",
             [title, start, end, type]
         );
         const eventId = result.insertId;
 
-        // 2. Pokud je vyplněné příjmení, automaticky založíme rezervaci v tabulce reservations!
         if (surname && surname.trim() !== '') {
             await pool.query(
                 "INSERT INTO reservations (event_id, name, surname, email, phone, date) VALUES (?, ?, ?, ?, ?, ?)",
                 [eventId, name || '', surname, email || '', phone || '', date || start]
             );
         }
-
         await updateRentCounts();
 
         res.json({ success: true, message: "Událost a rezervace byla úspěšně vložena!" });
@@ -209,23 +188,19 @@ app.put('/api/events/:id', async (req, res) => {
         const eventId = req.params.id;
         const { title, start, end, type, name, surname, phone, email, date } = req.body;
 
-        // 1. Aktualizujeme základní událost v tabulce events
         await pool.query(
             "UPDATE events SET title = ?, start = ?, end = ?, type = ? WHERE id = ?",
             [title, start, end, type, eventId]
         );
 
-        // 2. Zjistíme, jestli k tomuto eventu už existuje rezervace v tabulce reservations
         const [existingRes] = await pool.query("SELECT id FROM reservations WHERE event_id = ?", [eventId]);
 
         if (existingRes.length > 0) {
-            // Pokud rezervace existuje, vždy aktualizujeme její klientské údaje (příjmení, jméno atd.)
             await pool.query(
                 "UPDATE reservations SET name = ?, surname = ?, email = ?, phone = ?, date = ? WHERE event_id = ?",
                 [name || '', surname || '', email || '', phone || '', date || start, eventId]
             );
         } else {
-            // Pokud rezervace neexistuje, ale admin zadal příjmení nebo nastavil typ booked, vytvoříme ji
             if (type === 'booked' || (surname && surname.trim() !== '')) {
                 await pool.query(
                     "INSERT INTO reservations (event_id, name, surname, email, phone, date) VALUES (?, ?, ?, ?, ?, ?)",
@@ -233,7 +208,6 @@ app.put('/api/events/:id', async (req, res) => {
                 );
             }
         }
-
         await updateRentCounts();
 
         res.json({ success: true, message: "Událost a rezervace byla aktualizována" });
@@ -261,12 +235,10 @@ app.post('/api/reservations', async (req, res) => {
     try {
         const { event_id, name, surname, email, phone, note, date } = req.body;
 
-        // vloží novou rezervaci do databáze
         await pool.query(
             "INSERT INTO reservations (event_id, name, surname, email, phone, note, date) VALUES (?, ?, ?, ?, ?, ?, ?)",
             [event_id, name, surname, email, phone, note, date]
         );
-
         const formattedDate = formatEmailDate(date);
 
         // email pro klienta
@@ -284,7 +256,6 @@ app.post('/api/reservations', async (req, res) => {
             subject: 'Nová rezervace na kluzišti!',
             text: `Byla vytvořena nová rezervace:\n\nJméno: ${name} ${surname}\nE-mail: ${email}\nTelefon: ${phone}\nTermín: ${formattedDate}\nPoznámka: ${note || 'žádná'}`
         };
-
         await transporter.sendMail(clientMailOptions);
         await transporter.sendMail(adminMailOptions);
 
@@ -306,7 +277,7 @@ app.get('/api/reservations', async (req, res) => {
     }
 });
 
-// 2. Endpoint pro skrytí zprávy z inboxu (rezervace v DB zůstane)
+// 7. Endpoint pro skrytí zprávy z inboxu (rezervace v DB zůstane)
 app.patch('/api/reservations/:id/hide', async (req, res) => {
     try {
         const reservationId = req.params.id;
@@ -318,7 +289,7 @@ app.patch('/api/reservations/:id/hide', async (req, res) => {
     }
 });
 
-// 7. endpoint pro získání informace o tom, jestli admin již přečetl danou zprávu v inboxu
+// 8. endpoint pro získání informace o tom, jestli admin již přečetl danou zprávu v inboxu
 app.patch('/api/reservations/:id/read', async (req, res) => {
     try {
         const { id } = req.params;
@@ -330,7 +301,7 @@ app.patch('/api/reservations/:id/read', async (req, res) => {
     }
 });
 
-// 8. endpoint pro získání počtu nepřečtených rezervací v inboxu
+// 9. endpoint pro získání počtu nepřečtených rezervací v inboxu
 app.get('/api/reservations/unread-count', async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT COUNT(*) AS count FROM reservations WHERE is_read = 0 AND deletedMessage = 0");
@@ -341,11 +312,11 @@ app.get('/api/reservations/unread-count', async (req, res) => {
     }
 });
 
-// 9. zrušení rezervace (dále potom zůstává volný event pro rezervaci)
+// 10. zrušení rezervace
 app.delete('/api/reservations/by-event/:eventId', async (req, res) => {
     try {
         const eventId = req.params.eventId;
-        // Smažeme záznam pouze z reservations, tabulku events vůbec neřešíme!
+        
         await pool.query("DELETE FROM reservations WHERE event_id = ?", [eventId]);
         await updateRentCounts();
         res.json({ success: true, message: "Rezervace byla zrušena, blok je opět volný." });
@@ -355,8 +326,7 @@ app.delete('/api/reservations/by-event/:eventId', async (req, res) => {
     }
 });
 
-
-// 10. získání datumu z databáze do kdy je vyplněný rozpis
+// 11. získání datumu z databáze do kdy je vyplněný rozpis
 app.get('/api/setting', async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT calendar_end_time, count_free_rent, count_booked_rent, count_all_rent FROM setting LIMIT 1");
@@ -374,12 +344,11 @@ app.get('/api/setting', async (req, res) => {
     }
 });
 
-// 11. Uložení / aktualizace data do kd je vyplněný rozpis
+// 12. Uložení / aktualizace data do kd je vyplněný rozpis
 app.post('/api/setting', async (req, res) => {
     try {
         const { limitDate } = req.body;
 
-        // Uložíme do tabulky (pokud záznam s id=1 neexistuje, vytvoří se, jinak se aktualizuje)
         await pool.query(
             "INSERT INTO setting (id, calendar_end_time) VALUES (1, ?) ON DUPLICATE KEY UPDATE calendar_end_time = ?",
             [limitDate, limitDate]
@@ -392,13 +361,11 @@ app.post('/api/setting', async (req, res) => {
     }
 });
 
-// Endpoint který spustí přepočet statistik pronájmů
+// 13. Endpoint který spustí přepočet statistik pronájmů
 app.post('/api/update-counts', async (req, res) => {
     try {
-        await updateRentCounts(); // Spustí tvou funkci v server.js
-        
-        // Načteme aktuální hodnoty z tabulky setting, abychom je poslali do frontendu
-        const [rows] = await pool.query("SELECT * FROM setting WHERE id = 1"); // případně LIMIT 1 podle toho, jak máš ID
+        await updateRentCounts();
+        const [rows] = await pool.query("SELECT * FROM setting WHERE id = 1");
         
         if (rows.length > 0) {
             res.json({ 
@@ -417,6 +384,7 @@ app.post('/api/update-counts', async (req, res) => {
     }
 });
 
+// 14. Endpoint pro získání všech rezervací a jejich detailů pro administraci
 app.get('/api/admin-reservations', async (req, res) => {
     try {
         const [rows] = await pool.query(`
@@ -434,7 +402,7 @@ app.get('/api/admin-reservations', async (req, res) => {
     }
 });
 
-
+// 15. Endpoint pro získání všech zákazníků a jejich statistik
 app.get('/api/admin-customers', async (req, res) => {
     try {
         const [rows] = await pool.query(`
@@ -453,7 +421,6 @@ app.get('/api/admin-customers', async (req, res) => {
             HAVING total_orders > 0
             ORDER BY total_orders DESC, last_completed_date DESC
         `);
-
         res.json({ success: true, customers: rows });
     } catch (err) {
         console.error("Chyba při načítání zákazníků:", err);
@@ -461,23 +428,21 @@ app.get('/api/admin-customers', async (req, res) => {
     }
 });
 
-// Endpoint pro bloky (volné / obsazené)
+// 16. Endpoint pro bloky (volné / obsazené)
 app.get('/api/admin-blocks-stats', async (req, res) => {
     try {
         let { startDate, endDate } = req.query;
-
-        // Načtení limitního data z tabulky setting podle reálného názvu sloupce
         const [settingRows] = await pool.query("SELECT * FROM setting WHERE id = 1");
         let limitDate = null;
         let rawLimit = null;
+
         if (settingRows.length > 0 && settingRows[0].calendar_end_time) {
             rawLimit = settingRows[0].calendar_end_time;
             limitDate = new Date(rawLimit).toISOString().split('T')[0];
         }
 
         const todayStr = new Date().toISOString().split('T')[0];
-        const defaultEnd = limitDate || todayStr; // Teď už správně vezme hodnotu z calendar_end_time
-
+        const defaultEnd = limitDate || todayStr;
         const effectiveStart = startDate || todayStr;
         const effectiveEnd = endDate || defaultEnd;
 
@@ -492,8 +457,8 @@ app.get('/api/admin-blocks-stats', async (req, res) => {
             JOIN reservations r ON e.id = r.event_id
             WHERE e.${baseWhere}
         `, params);
-        const bookedCount = bookedRows[0].total;
 
+        const bookedCount = bookedRows[0].total;
         const freeCount = allCount - bookedCount;
 
         res.json({ 
@@ -511,7 +476,7 @@ app.get('/api/admin-blocks-stats', async (req, res) => {
     }
 });
 
-// Endpoint pro typy událostí
+// 17. Endpoint pro typy událostí
 app.get('/api/admin-event-types-stats', async (req, res) => {
     try {
         let { startDate, endDate } = req.query;
@@ -547,7 +512,7 @@ app.get('/api/admin-event-types-stats', async (req, res) => {
     }
 });
 
-
+// 18. Endpoint pro získání top zákazníků
 app.get('/api/admin-top-customers', async (req, res) => {
     try {
         let { startDate, endDate } = req.query;
@@ -561,7 +526,6 @@ app.get('/api/admin-top-customers', async (req, res) => {
         const todayStr = new Date().toISOString().split('T')[0];
         const defaultEnd = limitDate || todayStr;
 
-        // Pokud filtr neobsahuje datum, vezmeme výchozí období sezóny
         const effectiveStart = startDate || '2026-10-01';
         const effectiveEnd = endDate || defaultEnd;
 
@@ -584,15 +548,11 @@ app.get('/api/admin-top-customers', async (req, res) => {
     }
 });
 
-
-
-
-// 2. Přihlašovací endpoint
+// 19. Přihlašovací endpoint
 app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Předpokládáme, že v databázi máš tabulku 'admins' se sloupci 'email' a 'password' (kde je bcrypt hash)
         const [rows] = await pool.query("SELECT * FROM admins WHERE email = ?", [email]);
 
         if (rows.length === 0) {
@@ -600,18 +560,14 @@ app.post('/api/login', async (req, res) => {
         }
 
         const admin = rows[0];
-
-        // Porovnání zadaného hesla s hashem v databázi přes bcrypt
         const match = await bcrypt.compare(password, admin.password);
 
         if (!match) {
             return res.status(401).json({ success: false, error: 'Nesprávné uživatelské jméno nebo heslo.' });
         }
 
-        // Uložení informací do session
         req.session.isAdmin = true;
         req.session.adminUser = admin.email;
-
         res.json({ success: true });
     } catch (err) {
         console.error("Chyba při zpracování přihlášení:", err);
@@ -619,29 +575,27 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// Routa pro odhlášení (GET požadavek, který odpovídá tvému <a> odkazu)
+// 20. Routa pro odhlášení
 app.get('/logout', (req, res) => {
     req.session.destroy(err => {
         if (err) {
             return res.status(500).send('Chyba při odhlašování');
         }
-        res.clearCookie('connect.sid'); // Vymaže cookie se session
-        res.redirect('/index.html'); // Přesměruje na přihlášení (nebo /index.html)
+        res.clearCookie('connect.sid'); 
+        res.redirect('/index.html');
     });
 });
 
-
-// Zabezpečená routa pro změnu hesla
+// 21. Zabezpečená routa pro změnu hesla
 app.post('/api/change-password', requireAuth, async (req, res) => {
     const { currentPassword, newPassword } = req.body;
-    const email = req.session.adminUser; // Zjistíme, kdo je přihlášený
+    const email = req.session.adminUser;
 
     if (!currentPassword || !newPassword) {
         return res.status(400).json({ success: false, error: 'Vyplňte všechna pole' });
     }
 
     try {
-        // 1. Najdeme admina v databázi
         const [rows] = await pool.query('SELECT * FROM admins WHERE email = ?', [email]);
         if (rows.length === 0) {
             return res.status(404).json({ success: false, error: 'Administrátor nenalezen' });
@@ -649,17 +603,14 @@ app.post('/api/change-password', requireAuth, async (req, res) => {
 
         const admin = rows[0];
 
-        // 2. Ověříme, zda souhlasí současné heslo pomocí bcrypt
         const isMatch = await bcrypt.compare(currentPassword, admin.password);
         if (!isMatch) {
             return res.status(400).json({ success: false, error: 'Nesprávné současné heslo' });
         }
 
-        // 3. Zahashujeme nové heslo
         const saltRounds = 10;
         const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
 
-        // 4. Uložíme nové heslo do databáze
         await pool.query('UPDATE admins SET password = ? WHERE email = ?', [hashedNewPassword, email]);
 
         res.json({ success: true, message: 'Heslo bylo úspěšně změněno' });
@@ -670,12 +621,10 @@ app.post('/api/change-password', requireAuth, async (req, res) => {
     }
 });
 
-
-// 1. Veřejná routa pro získání veškerého obsahu webu
+// 22. Veřejná routa pro získání veškerého obsahu webu
 app.get('/api/content', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM site_content');
-        // Převedeme pole na přehledný objekt klíč-hodnota
         const contentMap = {};
         rows.forEach(row => {
             contentMap[row.section_key] = row.content;
@@ -687,7 +636,7 @@ app.get('/api/content', async (req, res) => {
     }
 });
 
-// 2. Chráněná routa pro aktualizaci obsahu z adminu
+// 23. Chráněná routa pro aktualizaci obsahu z adminu
 app.post('/api/content/update', requireAuth, async (req, res) => {
     const { section_key, content } = req.body;
 
@@ -696,7 +645,6 @@ app.post('/api/content/update', requireAuth, async (req, res) => {
     }
 
     try {
-        // Pokud klíč už existuje, aktualizuje ho. Pokud ne, vytvoří ho.
         await pool.query(
             'INSERT INTO site_content (section_key, content) VALUES (?, ?) ON DUPLICATE KEY UPDATE content = ?',
             [section_key, content, content]

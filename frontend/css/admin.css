@@ -847,9 +847,6 @@ main:has(#edit.active) {
 #changePasswordForm {
     width: 400px;
 }
-#changePasswordForm h3 {
-    text-decoration: underline;
-}
 
 #changePasswordForm input {
     padding-right: 1.6rem !important;
@@ -889,9 +886,11 @@ main:has(#edit.active) {
     width: 100%;
 }
 
-.segment h3 {
+.segment h3,
+#changePasswordForm h3 {
     width: 100%;
     font-weight: 900;
+    text-decoration: underline;
 }
 
 .segment div {
