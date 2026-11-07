@@ -731,6 +731,16 @@ changeEventTitle.addEventListener("change", function(e) {
 // načítání z databáze uložené datum limitu rozsahu rozpisu
 document.addEventListener("DOMContentLoaded", function() {
 
+    const menuWrapper = document.getElementById("adminMenuWrapper");
+    const menuSlideToggle = document.getElementById("menuSlideToggle");
+
+    if (menuSlideToggle && menuWrapper) {
+        menuSlideToggle.addEventListener("click", () => {
+            // Přepneme třídu pro úplné schování/zobrazení menu
+            menuWrapper.classList.toggle("menu-collapsed");
+        });
+    }
+
     fetch('http://localhost:3000/api/setting')
         .then(response => response.json())
         .then(data => {

@@ -79,16 +79,69 @@ input, select, textarea {
     color: var(--red-color);
 }
 
+.menu-slide-toggle {
+    display: none;
+}
+
 @media (max-width: 568px) {
+    body:has(#adminMenuWrapper.active) {
+        overflow: hidden;
+    }
+    body:has(#adminMenuWrapper.active) .menu-slide-toggle {
+        display: none;
+    }
+
     #adminMenuWrapper.active {
-        width: 80vw !important;
-        z-index: 100;
+        width: calc(100vw - 2rem) !important;
     }
 
     .admin_main_container:has(#adminMenuWrapper.active) #adminContent {
         opacity: 0;
         transform: translateX(100%);
-        pointer-events: none;
+    }
+
+    .admin_main_container:has(#adminMenuWrapper.active) #adminMenu {
+        width: 100% !important;
+    }
+
+
+    /* Tlačítko pro skrytí/zobrazení menu na mobilu */
+    .menu-slide-toggle {
+        display: flex;
+        position: fixed;
+        top: 50%;
+        left: 95px;
+        color: white;
+        width: 15px;
+        height: 36px;
+        border-radius: 0 8px 8px 0;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: left 0.3s ease-in-out, background 0.2s;
+        transform: translateY(-50%);
+    }
+
+    .menu-slide-toggle:hover {
+        background: var(--red-color);
+    }
+
+    #adminMenuWrapper.menu-collapsed {
+        transform: translateX(-120%) !important;
+    }
+
+    #adminMenuWrapper.menu-collapsed ~ .menu-slide-toggle {
+        left: -1px !important;
+        border-radius: 0 8px 8px 0;
+    }
+
+    #adminMenuWrapper.menu-collapsed ~ .menu-slide-toggle i {
+        transform: rotate(180deg);
+    }
+
+    #adminMenuWrapper.menu-collapsed ~ #adminContent {
+        margin-left: 0 !important;
+        width: 100% !important;
     }
 }
 /********************************************
@@ -98,7 +151,7 @@ input, select, textarea {
     width: 80px;
     overflow: hidden;
     padding: 1.5rem;
-    transition: width 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
     position: fixed;
     height: calc(100vh - 2rem);
 }
@@ -110,6 +163,7 @@ input, select, textarea {
     width: 180px;
     height: 100%;
     color: white;
+    transition: width 0.3s ease-in-out;
 }
 
 #adminMenuWrapper #adminMenu .admin_menu_inside {
