@@ -18,6 +18,7 @@ const customersContent = document.getElementById("customers");
 const adminUserContent = document.getElementById("admin");
 const editContent = document.getElementById("edit");
 const allContents = document.querySelectorAll("#adminContent .content");
+const adminContent = document.getElementById("adminContent");
 
 const adminEventsForm = document.getElementById("insertEventsForm");
 
@@ -60,6 +61,7 @@ menuArrow.addEventListener("click", (e) => {
     e.preventDefault();
     menuArrowIn.classList.toggle("active");
     menuWrapper.classList.toggle("active");
+
 })
 
 // logika animovaného otáčení refresh šipky v content části admin panelu
@@ -651,19 +653,25 @@ const navItems = [
 // Pomocná funkce pro přepnutí sekce a uložení do URL
 function showSection(item) {
     allContents.forEach(content => content.classList.remove("active"));
-    navItems.forEach(nav => nav.icon.classList.remove("active"));
+
+    navItems.forEach(nav => {
+        nav.icon.classList.remove("active");
+
+        const textLink = nav.icon ? nav.icon.nextElementSibling : null;
+        textLink.classList.remove("active");
+    });
 
     item.content.classList.add("active");
     item.icon.classList.add("active");
 
-    // Pokud má content své ID, uložíme ho do URL jako hash (např. admin.html#inbox)
+    const activeTextLink = item.icon ? item.icon.nextElementSibling : null;
+    activeTextLink.classList.add("active");
+
     if (item.content.id) {
-        // window.location.hash = item.content.id;
         history.replaceState(null, null, '#' + item.content.id);
     }
 
     setTimeout(() => {
-        const adminContent = document.getElementById("adminContent");
         if (adminContent) {
             adminContent.scrollTop = 0;
         }
@@ -696,6 +704,12 @@ navItems.forEach(item => {
         item.icon.addEventListener("click", (e) => {
             e.preventDefault();
 
+            showSection(item);
+        });
+
+        const textLink = item.icon.nextElementSibling;
+        textLink.addEventListener("click", (e) => {
+            e.preventDefault();
             showSection(item);
         });
     }

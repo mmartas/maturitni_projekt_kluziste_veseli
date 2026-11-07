@@ -78,6 +78,19 @@ input, select, textarea {
     border: 1px solid var(--red-color);
     color: var(--red-color);
 }
+
+@media (max-width: 568px) {
+    #adminMenuWrapper.active {
+        width: 80vw !important;
+        z-index: 100;
+    }
+
+    .admin_main_container:has(#adminMenuWrapper.active) #adminContent {
+        opacity: 0;
+        transform: translateX(100%);
+        pointer-events: none;
+    }
+}
 /********************************************
     MENU START
 ********************************************/
@@ -213,7 +226,6 @@ input, select, textarea {
     height: 100%;
     margin-left: calc(80px + 1rem);
     transition: all 0.3s ease-in-out;
-    
 }
 .admin_main_container:has(#adminMenuWrapper.active) #adminContent {
     margin-left: calc(226px + 1rem);
