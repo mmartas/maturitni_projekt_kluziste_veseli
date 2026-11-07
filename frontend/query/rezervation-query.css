@@ -6,20 +6,8 @@
         font-size: 30px;
     }
 }
+
 @media (max-width: 740px){
-    .fc .fc-toolbar.fc-header-toolbar {
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .fc .fc-toolbar.fc-header-toolbar .fc-toolbar-chunk:nth-child(2) {
-        order: 3;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-    }
-
     .modal_window .rezervation_formular form .client_info_row {
         flex-direction: column;
         gap: 0.5rem;
@@ -84,39 +72,13 @@
     .rezervation_formular .text {
         font-size: 16px;
     }
-
 }
-
 
 @media (max-width: 566px){
     .client_info_row {
         justify-content: center;
     }
-
-    /* nezalomení hlavičky "po 11.4." při responzivitě */
-    .day-header {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
 }
-
-@media (max-width: 500px){
-    .fc .fc-toolbar.fc-header-toolbar .fc-toolbar-chunk:nth-child(1) {
-        order: 2;
-    }
-
-    .fc .fc-toolbar.fc-header-toolbar .fc-toolbar-chunk:nth-child(3) {
-        order: 1;
-    }
-
-    .fc .fc-toolbar.fc-header-toolbar {
-        justify-content: center;
-    }
-
-    
-}
-
 
 @media (max-height: 625px){
     .modal_window {
