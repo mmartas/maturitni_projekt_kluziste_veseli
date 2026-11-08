@@ -581,8 +581,8 @@ app.get('/logout', (req, res) => {
         if (err) {
             return res.status(500).send('Chyba při odhlašování');
         }
-        res.clearCookie('connect.sid'); 
-        res.redirect('/index.html');
+        res.clearCookie('connect.sid');
+        res.redirect('/pages/login.html?logout=success');
     });
 });
 

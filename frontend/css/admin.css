@@ -321,27 +321,6 @@ input, select, textarea {
     START - DASHBOARD CONTENT
 
 */
-main:has(#dashboard.active),
-main:has(#edit.active) {
-    height: auto !important;
-    min-height: 100vh;
-    padding: 1rem 0;
-}
-.admin_main_container:has(#dashboard.active),
-.admin_main_container:has(#edit.active) {
-    height: auto !important;
-    min-height: calc(100vh - 2rem);
-}
-#adminContent:has(#dashboard.active),
-#adminContent:has(#edit.active) {
-    height: auto !important;
-    min-height: 100%;
-}
-
-#dashboard.content.active {
-    height: auto !important;
-}
-
 .content-container {
     display: flex;
     flex-direction: column;
@@ -397,103 +376,6 @@ main:has(#edit.active) {
 /*
     END - DASHBOARD CONTENT
 */
-
-/*
-    START - INBOX CONTENT
-*/
-.one_message {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    border-radius: 30px;
-    border: 1px solid var(--glass-border);
-    background: rgba(255, 255, 255, 0.03);
-    transition: background 0.2s, background-color 0.3s;
-    cursor: pointer;
-}
-
-.one_message:hover {
-    background: rgba(255, 255, 255, 0.07);
-}
-
-.message_preview {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 1.5rem;
-    width: 100%;
-    transition: all 0.3s ease-in-out;
-}
-
-.message_details {
-    display: none;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    width: 100%;
-    flex-direction: column;
-    gap: 0.5rem;
-    color: #cbd5e1;
-}
-
-.one_message.expanded .message_details {
-    display: flex; 
-}
-
-.one_message.unread {
-    box-shadow: var(--green-inner-shadow); 
-    border-left: 4px solid var(--green-color);
-}
-
-.one_message.unread .message_subject {
-    font-weight: 700;
-}
-
-#unreadMessagesIcon {
-    font-size: 0.7rem;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    top: 0;
-    left: 21px;
-    width: 15px;
-    height: 15px;
-    border-radius: 100%;
-    background-color: var(--red-color);
-    color: var(--white-color);
-    z-index: 999;
-}
-.trashCan {
-    margin-left: auto;
-}
-
-@media (max-width: 992px) {
-    .text {
-        font-size: 16px !important;
-        text-wrap: nowrap;
-    }
-
-    .one_message {
-        padding: 0.6rem !important;
-    }
-
-    
-}
-@media (max-width: 800px) {
-    .message_preview {
-        flex-direction: column !important;
-        gap: 0.2rem !important;
-    }
-
-    .trashCan {
-        margin: 0 !important;
-    }
-}
-/*
-    END - INBOX CONTENT
-*/
-
 /*
     START - EVENTS CONTENT
 */
@@ -793,7 +675,6 @@ main:has(#edit.active) {
 /*
     END - EVENTS CONTENT
 */
-
 /*
     START - RESERVATION CONTENT
 */
@@ -889,7 +770,101 @@ main:has(#edit.active) {
 /*
     END - RESERVATION CONTENT
 */
+/*
+    START - INBOX CONTENT
+*/
+.one_message {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    border-radius: 30px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.03);
+    transition: background 0.2s, background-color 0.3s;
+    cursor: pointer;
+}
 
+.one_message:hover {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.message_preview {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1.5rem;
+    width: 100%;
+    transition: all 0.3s ease-in-out;
+}
+
+.message_details {
+    display: none;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: #cbd5e1;
+}
+
+.one_message.expanded .message_details {
+    display: flex; 
+}
+
+.one_message.unread {
+    box-shadow: var(--green-inner-shadow); 
+    border-left: 4px solid var(--green-color);
+}
+
+.one_message.unread .message_subject {
+    font-weight: 700;
+}
+
+#unreadMessagesIcon {
+    font-size: 0.7rem;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    left: 21px;
+    width: 15px;
+    height: 15px;
+    border-radius: 100%;
+    background-color: var(--red-color);
+    color: var(--white-color);
+    z-index: 999;
+}
+.trashCan {
+    margin-left: auto;
+}
+
+@media (max-width: 992px) {
+    .text {
+        font-size: 16px !important;
+        text-wrap: nowrap;
+    }
+
+    .one_message {
+        padding: 0.6rem !important;
+    }
+
+    
+}
+@media (max-width: 800px) {
+    .message_preview {
+        flex-direction: column !important;
+        gap: 0.2rem !important;
+    }
+
+    .trashCan {
+        margin: 0 !important;
+    }
+}
+/*
+    END - INBOX CONTENT
+*/
 /*
     START - CUSTOMERS CONTENT
 */
@@ -929,77 +904,51 @@ main:has(#edit.active) {
 /*
     END - CUSTOMERS CONTENT
 */
-
 /*
-    START - LOGIN PAGE
+    START - EDIT PAGE
 */
-
-.signincontainer {
-    padding: 1rem;
+#editContentForm {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    height: auto;
-    aspect-ratio: 1 / 1;
-}
-
-#signInForm {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-#signInForm label {
-    display: flex;
-    flex-direction: column;
-}
-#signInForm button {
-    border-radius: 30px;
-    padding: 0.5rem 1rem;
-    color: var(--white-color);
-    cursor: pointer;
-    transition: 0.3s all ease-in-out;
-}
-.password-input {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.password-input input {
-    padding-right: 1.5rem !important;
     width: 100%;
 }
 
-
-#signInForm .password-eye-icon {
-    color: var(--blue-color);
-    font-size: 1.1rem;
-}
-#signInForm .password-eye-icon.fa-eye-slash {
-    right: 3px;
-}
-@keyframes shake {
-    0% { transform: translateX(0); }
-    20% { transform: translateX(-6px); }
-    40% { transform: translateX(6px); }
-    60% { transform: translateX(-4px); }
-    80% { transform: translateX(4px); }
-    100% { transform: translateX(0); }
+.segment {
+    display: flex;
+    flex-wrap: wrap;       
+    gap: 1rem;           
+    width: 100%;
 }
 
-
-/* Třída, kterou JavaScript přidá při špatných údajích */
-.error-shake {
-    border-color: var(--red-color) !important;
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3); /* Jemná červená aura */
-    animation: shake 0.4s ease-in-out;        /* Spustí zatřesení na 0.4 vteřiny */
+.segment h3,
+#changePasswordForm h3 {
+    width: 100%;
+    font-weight: 900;
+    text-decoration: underline;
 }
 
+.segment div {
+    display: flex;
+    flex-direction: column; 
+    gap: 0.4rem;
+    flex: 1 1 280px;     
+    max-width: 350px;     
+}
+
+.segment textarea {
+    width: 100%;
+    height: 90px;           
+    resize: vertical;       
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--white-color);
+    padding: 0.3rem;
+}
 /*
-    END - LOGIN PAGE
+    END - EDIT PAGE
 */
-
 /*
     START - ADMIN USER PAGE
 */
@@ -1048,50 +997,4 @@ main:has(#edit.active) {
 }
 /*
     END - ADMIN USER PAGE
-*/
-
-/*
-    START - EDIT PAGE
-*/
-#editContentForm {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    width: 100%;
-}
-
-.segment {
-    display: flex;
-    flex-wrap: wrap;       
-    gap: 1rem;           
-    width: 100%;
-}
-
-.segment h3,
-#changePasswordForm h3 {
-    width: 100%;
-    font-weight: 900;
-    text-decoration: underline;
-}
-
-.segment div {
-    display: flex;
-    flex-direction: column; 
-    gap: 0.4rem;
-    flex: 1 1 280px;     
-    max-width: 350px;     
-}
-
-.segment textarea {
-    width: 100%;
-    height: 90px;           
-    resize: vertical;       
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    color: var(--white-color);
-    padding: 0.3rem;
-}
-/*
-    END - EDIT PAGE
 */

@@ -1,8 +1,20 @@
+const togglePasswordIcons = document.querySelectorAll('.password-eye-icon');
+
 document.addEventListener("DOMContentLoaded", () => {
     const loginForm = document.getElementById('signInForm');
     const signInContainer = document.querySelector(".signincontainer");
     const signInErrorMessage = document.createElement("div");
     const signInButton = document.getElementById("signInButton");
+    const logoutContainer = document.querySelector('.logout-info-container');
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if (urlParams.get('logout') === 'success') {
+
+        if (signInContainer && logoutContainer) {
+            signInContainer.style.display = 'none';
+            logoutContainer.style.display = 'flex';
+        }
+    }
 
     if (!loginForm) return;
 
@@ -54,9 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
-
-// Najde všechna oka pro přepínání hesla na stránce
-const togglePasswordIcons = document.querySelectorAll('.password-eye-icon');
 
 togglePasswordIcons.forEach(icon => {
     icon.addEventListener('click', () => {
