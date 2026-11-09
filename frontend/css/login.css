@@ -29,16 +29,7 @@ main {
     cursor: pointer;
     transition: 0.3s all ease-in-out;
 }
-.password-input {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
 
-.password-input input {
-    padding-right: 1.5rem !important;
-    width: 100%;
-}
 
 
 #signInForm .password-eye-icon {

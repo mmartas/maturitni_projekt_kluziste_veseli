@@ -67,6 +67,17 @@ input, select, textarea {
     transition: color 0.2s ease;
 }
 
+.password-input {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input input {
+    padding-right: 1.5rem !important;
+    width: 100%;
+}
+
 .dynamic-form-message {
     padding: 0.2rem 0.5rem;
     border-radius: 8px;
