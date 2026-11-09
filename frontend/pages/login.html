@@ -3,21 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Přihlášení | Admin panel</title>
+
+    <!-- Favicon-->
     <link rel="shortcut icon" href="../images/favicon-admin.png" type="image/x-icon">
+
+    <!-- Google Fonts-->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
+    <!-- CSS-->
     <link rel="stylesheet" href="../css/general.css">
     <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="../css/login.css">
 
+    <!-- Font Awesome-->
     <script src="https://kit.fontawesome.com/9e0a62895a.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <main>
-        
+        <!-- SignIn Form-->
         <div class="signincontainer box_glass_effect">
             <h2 class="title">Přihlásit se</h2>
             <form action="" id="signInForm">
@@ -31,12 +38,12 @@
                         <input id="adminPassword" type="password" required>
                         <i class="fa-solid fa-eye password-eye-icon" data-target="adminPassword"></i>
                     </div>
-                    
                 </label>
                 <button type="submit" class="box_glass_effect_blue" id="signInButton">Přihlásit</button>
             </form>
         </div>
 
+        <!-- LogOut Info-->
         <div class="logout-info-container box_glass_effect">
             <h2 class="title">Byli jste úspěšně odhlášeni!</h2>
             <div class="row">
@@ -44,8 +51,8 @@
                 <a href="login.html" class="box_glass_effect_green text">Zpět na admin panel</a>
             </div>
         </div>
-
     </main>
+    <!-- JS-->
     <script src="../js/function.js"></script>
     <script src="../js/login.js"></script>
 </body>

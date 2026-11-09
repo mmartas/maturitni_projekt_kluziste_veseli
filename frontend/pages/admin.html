@@ -1,22 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Admin Panel</title>
-
-    <link rel="stylesheet" href="../css/general.css">
-    <link rel="stylesheet" href="../css/calendar.css">
-    <link rel="stylesheet" href="../css/admin.css">
-
-    <link rel="stylesheet" href="../query/calendar-query.css">
-
-    <script src="https://kit.fontawesome.com/9e0a62895a.js" crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <title>Admin Panel</title>
 
+    <!-- CSS-->
+    <link rel="stylesheet" href="../css/general.css">
+    <link rel="stylesheet" href="../css/calendar.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../query/calendar-query.css">
+    <link rel="stylesheet" href="../query/admin-query.css">
+
+    <!-- Favicon-->
     <link rel="shortcut icon" href="../images/favicon-admin.png" type="image/x-icon">
 
     <!-- FullCalendar -->
@@ -27,10 +24,18 @@
     <!-- Chart.js-->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Font Awesome-->
+    <script src="https://kit.fontawesome.com/9e0a62895a.js" crossorigin="anonymous"></script>
+    
+    <!-- Google Fonts-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 </head>
 <body>
     <main>
         <div class="admin_main_container">
+            <!-- Left Side Bar Menu-->
             <section id="adminMenuWrapper" class="box_glass_effect">
                 <section id="adminMenu">
                     <div class="admin_menu_inside">
@@ -94,13 +99,15 @@
                 </section>
             </section>
 
+            <!-- Small Side Bar Menu Arrow - Mobile Format-->
             <button id="menuSlideToggle" class="menu-slide-toggle box_glass_effect_red" title="Skrýt menu">
                 <i class="fa-solid fa-chevron-left"></i>
             </button>
             
-
+            <!-- Main Content-->
             <section id="adminContent" class="box_glass_effect">
-                <div class="wrapper">  
+                <div class="wrapper">
+                    <!-- Dashboard-->
                     <section id="dashboard" class="content active">
                         <h2 class="title">Přehled</h2>
                         <div class="content-container text">
@@ -110,14 +117,12 @@
                             <div class="chart-filters">
                                 <label>Od: <input type="date" id="chartStartDate"></label>
                                 <label>Do: <input type="date" id="chartEndDate"></label>
-
                                 <label>Sezóna: 
                                     <select id="filterSeason">
                                         <option value="">-</option>
                                         <option value="2026/2027">2026/2027</option>
                                     </select>
                                 </label>
-
                                 <label>Měsíc: 
                                     <select id="filterMonth">
                                         <option value="">-</option>
@@ -154,6 +159,7 @@
                         </div>
                     </section>
 
+                    <!-- Events-->
                     <section id="events" class="content">
                         <div class="events_form_container content-container">
                             <h2 class="title">Správa událostí</h2>
@@ -212,20 +218,19 @@
                         <div id="calendar" class="box_glass_effect"></div>
                     </section>
 
+                    <!-- Reservations-->
                     <section id="reservations" class="content">
                         <h2 class="title">Seznam rezervací</h2>
-                        <div id="reservationsList" class="content-container">
-                            
-                        </div>
+                        <div id="reservationsList" class="content-container"></div>
                     </section>
 
+                    <!-- Inbox-->
                     <section id="inbox" class="content">
                         <h2 class="title">Seznam zpráv</h2>
-                        <div id="messagesContainer" class="content-container text">
-                            
-                        </div>
+                        <div id="messagesContainer" class="content-container text"></div>
                     </section>
 
+                    <!-- Customers-->
                     <section id="customers" class="content">
                         <h2 class="title">Seznam zákazníků</h2>
                         <div class="table-container text">
@@ -243,9 +248,9 @@
                                 <tbody id="customersTableBody"></tbody>
                             </table>
                         </div>
-                        
                     </section>
 
+                    <!-- Edit-->
                     <section id="edit" class="content">
                         <h2 class="title">Správa obsahu webu</h2>
                         <form id="editContentForm" class="text">
@@ -280,7 +285,6 @@
                                     <textarea id="hp-changing-room"></textarea>
                                 </div>
                             </div>
-
                             <div class="price-page segment">
                                 <h3>Ceník</h3>
                                 <div>
@@ -308,7 +312,6 @@
                                     <textarea id="price-food"></textarea>
                                 </div>
                             </div>
-
                             <div class="schedule-page segment">
                                 <h3>Rozpis ledu</h3>
                                 <div>
@@ -332,11 +335,11 @@
                                     <textarea id="schedule-rental-skate"></textarea>
                                 </div>
                             </div>
-
                             <button title="Uložit změny" type="submit" class="big-action-button box_glass_effect_green"><i class="fa-solid fa-check"></i></button>
                         </form>
                     </section>
 
+                    <!-- Admin-->
                     <section id="admin" class="content">
                         <h2 class="title">Spravovat admin účet</h2>
                         <form id="changePasswordForm" class="content-container text">
@@ -348,7 +351,6 @@
                                         <input type="password" id="currentPassword" required>
                                         <i class="fa-solid fa-eye password-eye-icon" data-target="currentPassword"></i>
                                     </div>
-                                    
                                 </div>
                                 <div class="row">
                                     <label>Nové heslo:</label>
@@ -356,25 +358,22 @@
                                         <input type="password" id="newPassword" required>
                                         <i class="fa-solid fa-eye password-eye-icon" data-target="newPassword"></i>
                                     </div>
-                                    
                                 </div>
                             </div>
                             <div class="row" id="changePasswordFormSubmitContainer">
                                 <button title="Změnit heslo" type="submit" class="big-action-button box_glass_effect_green"><i class="fa-solid fa-check"></i></button>
                             </div>
-                            
                         </form>
-                            
                         <a href="/logout" id="logOutButton" class="box_glass_effect_red text">
                             <span>Odhlásit se</span>
                             <i class="fa-solid fa-arrow-right-from-bracket"></i>
                         </a>
                     </section>
-                    
                 </div>
             </section>
         </div>
     </main>
+    <!-- JS-->
     <script src="../js/function.js"></script>
     <script src="../js/admin.js"></script>
     <script src="../js/general.js"></script>
