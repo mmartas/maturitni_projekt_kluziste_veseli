@@ -369,7 +369,7 @@ function getChartDateRangeParams() {
 function loadBlocksChart() {
     const queryParams = getChartDateRangeParams();
 
-    fetch(`http://localhost:3000/api/admin-blocks-stats${queryParams}`)
+    return fetch(`http://localhost:3000/api/admin-blocks-stats${queryParams}`)
         .then(response => response.json())
         .then(res => {
             if (!res.success) return;
@@ -610,15 +610,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const queryParams = getChartDateRangeParams();
             if (queryParams === null) {
-                return; // Ukončíme funkci, nikam se data neodesílají, nic se nemění
+                return;
             }
             
-            loadBlocksChart();
-            loadEventTypesChart();
-            loadTopCustomersChart();
+            initDashboard();
         });
     }
 });
+
+async function initDashboard() {
+    await loadBlocksChart();
+    loadEventTypesChart();
+    loadTopCustomersChart();
+}
 
 const passwordEyeIcon = document.querySelectorAll('.password-eye-icon');
 
@@ -679,9 +683,7 @@ function showSection(item) {
     }, 50);
 
     if (item.content === dashboardContent) {
-        loadBlocksChart();
-        loadEventTypesChart();
-        loadTopCustomersChart();
+        initDashboard();
     }
 
     if (item.content === eventsContent) {
@@ -785,6 +787,10 @@ document.addEventListener("DOMContentLoaded", function() {
     const defaultItem = navItems.find(item => item.content && item.content.id === 'dashboard') || navItems[0];
     if (defaultItem) {
         showSection(defaultItem);
+    }
+
+    if(dashboardContent.classList.contains("active")) {
+        initDashboard();
     }
 });
 
