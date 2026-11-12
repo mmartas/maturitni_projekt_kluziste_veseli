@@ -1,264 +1,72 @@
-const menuArrow = document.querySelector("#adminMenuArrow");
-const menuArrowIn = document.querySelector("#adminMenuArrow i")
-const menuWrapper = document.getElementById("adminMenuWrapper");
+const DOM = {
+    // navigace v menu
+    get menuArrow() {return document.getElementById("adminMenuArrow");},
+    get menuArrowIn() {return document.querySelector("#adminMenuArrow i");},
+    get menuWrapper() {return document.getElementById("adminMenuWrapper");},
+    get menuSlideToggle() {return document.getElementById("menuSlideToggle");},
 
-const dashboardIcon = document.getElementById("dashboardIcon");
-const eventsIcon = document.getElementById("eventsIcon");
-const reservationsIcon = document.getElementById("reservationsIcon");
-const inboxIcon = document.getElementById("inboxIcon");
-const customersIcon = document.getElementById("customersIcon");
-const adminUserIcon = document.getElementById("adminUserIcon");
-const editIcon = document.getElementById("editIcon");
+    // ikony v menu
+    get dashboardIcon() {return document.getElementById("dashboardIcon");},
+    get eventsIcon() {return document.getElementById("eventsIcon");},
+    get reservationsIcon() {return document.getElementById("reservationsIcon");},
+    get inboxIcon() {return document.getElementById("inboxIcon");},
+    get customersIcon() {return document.getElementById("customersIcon");},
+    get adminUserIcon() {return document.getElementById("adminUserIcon");},
+    get editIcon() {return document.getElementById("editIcon");},
 
-const dashboardContent = document.getElementById("dashboard");
-const eventsContent = document.getElementById("events");
-const reservationsContent = document.getElementById("reservations");
-const inboxContent = document.getElementById("inbox");
-const customersContent = document.getElementById("customers");
-const adminUserContent = document.getElementById("admin");
-const editContent = document.getElementById("edit");
-const allContents = document.querySelectorAll("#adminContent .content");
-const adminContent = document.getElementById("adminContent");
+    // obsah jednotlivých sekcí
+    get dashboardContent() { return document.getElementById("dashboard"); },
+    get eventsContent() { return document.getElementById("events"); },
+    get reservationsContent() { return document.getElementById("reservations"); },
+    get inboxContent() { return document.getElementById("inbox"); },
+    get customersContent() { return document.getElementById("customers"); },
+    get adminUserContent() { return document.getElementById("admin"); },
+    get allContents() { return document.querySelectorAll("#adminContent .content"); },
+    get adminContent() { return document.getElementById("adminContent"); },
 
-const adminEventsForm = document.getElementById("insertEventsForm");
+    // Formulář událostí a tlačítka
+    get adminEventsForm() { return document.getElementById("insertEventsForm"); },
+    get adminRefreshArrow() { return document.getElementById("adminRefreshArrow"); },
+    get deleteBtn() { return document.getElementById("deleteBtn"); },
+    get cancelBtn() { return document.getElementById("cancelBtn"); },
+    get submitBtn() { return document.getElementById("submitBtn"); },
 
-const adminRefreshArrow = document.getElementById("adminRefreshArrow");
+    // Inputy formuláře událostí
+    get eventTitle() { return document.getElementById("eventTitle"); },
+    get eventStart() { return document.getElementById("eventStart"); },
+    get eventEnd() { return document.getElementById("eventEnd"); },
+    get bookedClientName() { return document.getElementById("bookedClientName"); },
+    get clientInfo() { return document.querySelectorAll(".clientInfo"); },
+    get adminBookedClientName() { return document.getElementById("adminBookedClientName"); },
+    get adminBookedClientSurname() { return document.getElementById("adminBookedClientSurname"); },
+    get adminBookedClientTel() { return document.getElementById("adminBookedClientTel"); },
+    get adminBookedClientEmail() { return document.getElementById("adminBookedClientEmail"); },
+
+    // Dashboard a filtry
+    get limitDateInput() { return document.getElementById("limitDate"); },
+    get dashboardLimitDate() { return document.getElementById("endEventsDate"); },
+    get chartStartDate() { return document.getElementById("chartStartDate"); },
+    get chartEndDate() { return document.getElementById("chartEndDate"); },
+    get filterSeason() { return document.getElementById("filterSeason"); },
+    get filterMonth() { return document.getElementById("filterMonth"); },
+    get filterChartsBtn() { return document.getElementById("filterChartsBtn"); },
+
+    // Ostatní formuláře (heslo, obsah)
+    get changePasswordForm() { return document.getElementById("changePasswordForm"); },
+    get editContentForm() { return document.getElementById("editContentForm"); },
+    get changePasswordFormSubmitContainer() { return document.getElementById("changePasswordFormSubmitContainer"); },
+    get editContent() { return document.getElementById("edit"); },
+
+    get passwordEyeIcon() { return document.querySelectorAll(".password-eye-icon")},
+    get listContainer() { return document.getElementById("reservationsList")}
+};
 
 const today = new Date().toISOString().split('T')[0];
-
-const deleteBtn = document.getElementById("deleteBtn");
-const cancelBtn = document.getElementById("cancelBtn");
-const submitBtn = document.getElementById("submitBtn");
-
-const limitDateInput = document.getElementById("limitDate");
-const dashboardLimitDate = document.getElementById("endEventsDate");
-
-const changePasswordFormSubmitContainer = document.getElementById("changePasswordFormSubmitContainer");
-
-const bookedClientName = document.getElementById("bookedClientName");
-const clientInfo = document.querySelectorAll(".clientInfo");
-let adminBookedClientName = document.getElementById("adminBookedClientName");
-
-let changeEventTitle = document.getElementById("eventTitle");
-
 let savedLimitDate = null;
-
 let calendar;
 let calendarInitialized = false;
-
 let currentEditingId = null;
 let currentEventIsBooked = false;
-
-setupPhoneFormatters();
-setupNameFormatters();
-
-if ('scrollRestoration' in history) {
-    history.scrollRestoration = 'manual';
-}
-
-// vysunutí meníčka v levém admin panelu po kliknutí na šipku + (otočení šipky animací)
-menuArrow.addEventListener("click", (e) => {
-    e.preventDefault();
-    menuArrowIn.classList.toggle("active");
-    menuWrapper.classList.toggle("active");
-
-})
-
-// logika animovaného otáčení refresh šipky v content části admin panelu
-let currentRotation = 0;
-adminRefreshArrow.addEventListener("click", (e) => {
-    e.preventDefault();
-    
-    currentRotation -= 360;
-    adminRefreshArrow.style.transform = `rotate(${currentRotation}deg)`;
-    setTimeout(() => {
-        window.location.reload();
-    }, 200);
-})
-
-function addOneDay(dateStr) {
-    const d = new Date(dateStr);
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
-}
-
-function initCalendar() {
-    if (calendarInitialized) {
-        if (calendar) {
-            setTimeout(() => {
-                calendar.render();
-                calendar.updateSize();
-            }, 50);
-        }
-        return;
-    }
-
-    const calendarEl = document.getElementById('calendar');
-    if (!calendarEl) return;
-
-    calendar = new FullCalendar.Calendar(calendarEl, {
-        locale: 'cs',
-        initialView: 'timeGridWeek',
-        height: '100%',
-        nowIndicator: true,
-
-        validRange: {
-            end: savedLimitDate ? addOneDay(savedLimitDate) : undefined
-        },
-
-        dayHeaderDidMount: function(info) {
-            if (info.view.type === "dayGridMonth") return;
-            info.el.style.cursor = "pointer";
-            info.el.addEventListener("click", () => {
-                calendar.changeView('timeGridDay', info.date);
-            });
-        },
-
-        dayMaxEvents: 3,
-
-        customButtons: {
-            printButton: {
-            text: "",
-            click: function() {
-                window.print();
-            }
-            }
-        },
-
-        headerToolbar: {
-            left: 'prev,next today printButton',
-            center: 'title',
-            right: 'timeGridDay,timeGridWeek,dayGridMonth'
-        },
-
-        buttonText: {
-            today: "Dnes",
-            week: "Týden",
-            day: "Den",
-            month: "Měsíc"
-        },
-        
-        expandRows: false,
-        firstDay: 1,
-
-        slotMinTime: '06:00:00',
-        slotMaxTime: '23:00:00',
-
-        slotDuration: '01:00:00',
-        slotLabelInterval: '01:00',
-
-        allDaySlot: false,
-        moreLinkText: 'další',
-
-        events: "http://localhost:3000/api/events",
-
-        eventClick: function(info) {
-            currentEditingId = info.event.id;
-            
-            const props = info.event.extendedProps;
-            currentEventIsBooked = (props.booked === true || props.booked === 1);
-
-            const eventType = props.type;
-
-            document.getElementById("eventTitle").value = eventType;
-
-            const clientNameInput = adminBookedClientName;
-            const clientSurnameInput = document.getElementById("adminBookedClientSurname");
-            const clientTelInput = document.getElementById("adminBookedClientTel");
-            const clientEmailInput = document.getElementById("adminBookedClientEmail");
-
-            if (currentEventIsBooked) {
-                clientInfo.forEach(element => element.classList.add("active"));
-                clientNameInput.value = props.client_name || "";
-                clientSurnameInput.value = props.client_surname || "";
-                clientTelInput.value = props.client_phone || "";
-                clientEmailInput.value = props.client_email || "";
-                changeEventTitle.value = "booked";
-            } else {
-                clientInfo.forEach(element => element.classList.remove("active"));
-                clientNameInput.value = "";
-                clientSurnameInput.value = "";
-                clientTelInput.value = "";
-                clientEmailInput.value = "";
-                changeEventTitle.value = eventType;
-            }
-
-            document.getElementById("eventStart").value = info.event.startStr.slice(0, 16);
-            document.getElementById("eventEnd").value = info.event.endStr ? info.event.endStr.slice(0, 16) : "";
-
-            submitBtn.title = "Potvrdit změny";
-            
-            if (currentEventIsBooked) {
-                deleteBtn.title = "Zrušit rezervaci";
-            } else {
-                deleteBtn.title = "Odstranit událost";
-            }
-
-            deleteBtn.style.display = "inline-block";
-            document.getElementById("cancelBtn").style.display = "inline-block";
-        },
-
-        eventClassNames: function(arg) {
-            const type = arg.event.extendedProps.type;
-            const booked = arg.event.extendedProps.booked;
-
-            if(type === 'rent') {
-                if(!booked) return ['event-rent'];
-                else return ['event-rent-booked'];
-            } else if (type === 'public') return ['event-public'];
-            else if (type === 'booked') return ['event-booked'];
-            else if (type === 'maintenance') return ['event-maintenance'];
-            else if (type === 'school') return ['event-school'];
-            return [];
-        },
-
-        dayCellDidMount: function(info) {
-            if (info.view.type === "dayGridMonth") {
-                info.el.style.cursor = "pointer";
-            }
-        },
-
-        dateClick: function(info) {
-            if (info.view.type === "dayGridMonth") {
-                calendar.changeView('timeGridDay', info.date);
-            }
-        },
-
-        dayHeaderContent: function(arg) {
-            const date = arg.date;
-            const day = date.toLocaleDateString('cs-CZ', { weekday: 'short' });
-            const fullDate = date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
-            const dayDate = date.toLocaleDateString('cs-CZ', { day: 'numeric' });
-
-            if (arg.view.type === "dayGridMonth") {
-                return { html: `<span class="day-name">${day}</span>` };
-            }
-
-            if (arg.view.type === "timeGridWeek" && window.innerWidth <= 430) {
-                return {
-                    html: `
-                        <div class="day-header">
-                            <span class="day-name">${day}</span>
-                            <span class="day-date">${dayDate}</span>
-                        </div>
-                    `
-                };
-            }
-
-            return {
-                html: `
-                    <div class="day-header">
-                        <span class="day-name">${day}</span>
-                        <span class="day-date">${fullDate}</span>
-                    </div>
-                `
-            };
-        }
-    });
-
-    calendar.render();
-    calendarInitialized = true;
-}
 
 const greenColor = getComputedStyle(document.documentElement)
     .getPropertyValue('--green-color-lighter')
@@ -276,13 +84,88 @@ const yellowColor = getComputedStyle(document.documentElement)
     .getPropertyValue('--yellow-color-lighter')
     .trim();
 
-document.addEventListener("DOMContentLoaded", () => {
-    const startInput = document.getElementById('chartStartDate');
-    const endInput = document.getElementById('chartEndDate');
-    const seasonSelect = document.getElementById('filterSeason');
-    const monthSelect = document.getElementById('filterMonth');
+if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+}
 
-    // Když uživatel změní sezónu nebo měsíc, vymažeme ruční datumy v inputech
+document.addEventListener("DOMContentLoaded", () => {
+    /*
+        * Obecné
+    */
+    // Aktualizace počtu nepřečtených zpráv
+    updateUnreadBadge();
+
+    setupPhoneFormatters();
+    setupNameFormatters();
+
+    // vysunutí meníčka v levém admin panelu po kliknutí na šipku + (otočení šipky animací)
+    DOM.menuArrow.addEventListener("click", (e) => {
+        e.preventDefault();
+        DOM.menuArrowIn.classList.toggle("active");
+        DOM.menuWrapper.classList.toggle("active");
+    })
+
+    // logika animovaného otáčení refresh šipky v content části admin panelu
+    let currentRotation = 0;
+    DOM.adminRefreshArrow.addEventListener("click", (e) => {
+        e.preventDefault();
+        
+        currentRotation -= 360;
+        DOM.adminRefreshArrow.style.transform = `rotate(${currentRotation}deg)`;
+        setTimeout(() => {
+            window.location.reload();
+        }, 200);
+    })
+
+    // Přepínání menu v levém admin panelu (schování/zobrazení)
+    DOM.menuSlideToggle.addEventListener("click", () => {
+        DOM.menuWrapper.classList.toggle("menu-collapsed");
+    });
+
+    // Načtení limitDate z backendu a nastavení do inputu a dashboardu
+    fetch('http://localhost:3000/api/setting')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.limitDate) {
+                    savedLimitDate = data.limitDate.split('T')[0];
+                    DOM.limitDateInput.value = savedLimitDate;
+
+                    const [year, month, day] = savedLimitDate.split('-');
+                    const formattedDate = `${day}.${month}.${year}`;
+                
+                    DOM.dashboardLimitDate.innerHTML = formattedDate;
+                }
+            }
+        })
+    .catch(error => console.error('Chyba při načítání nastavení:', error));
+
+    // když je v URL hashtag, zobrazí se odpovídající sekce
+    const currentHash = window.location.hash.substring(1);
+    if (currentHash) {
+        const targetItem = navItems.find(item => item.content && item.content.id === currentHash);
+        if (targetItem) {
+            showSection(targetItem);
+            return;
+        }
+    }
+
+    // pokud v URL žádný hashtag není, otevře se dashboard nebo první položka
+    const defaultItem = navItems.find(item => item.content && item.content.id === 'dashboard') || navItems[0];
+    if (defaultItem) {
+        showSection(defaultItem);
+    }
+
+    /**
+     * Dashboard
+    */
+    // filtry pro grafy - inputy a selecty
+    const startInput = DOM.chartStartDate;
+    const endInput = DOM.chartEndDate;
+    const seasonSelect = DOM.filterSeason;
+    const monthSelect = DOM.filterMonth;
+
+    // pokud admin změní sezónu nebo měsíc, vymažou se ruční datumy v inputech
     [seasonSelect, monthSelect].forEach(element => {
         if (element) {
             element.addEventListener('change', () => {
@@ -292,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Když uživatel začne vybírat ruční datum, vymažeme sezónu i měsíc
+    // pokud admin začne vybírat ruční datum vymaže se sezóna a měsíc
     [startInput, endInput].forEach(element => {
         if (element) {
             element.addEventListener('change', () => {
@@ -301,13 +184,44 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     });
+
+    // filtrační tlačítko pro grafy - po kliknutí se načtou grafy s novými parametry
+    DOM.filterChartsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        const queryParams = getChartDateRangeParams();
+        if (queryParams === null) {
+            return;
+        }
+        initDashboard();
+    });
+
+    // pokud je dashboard aktivní, inicializuje se dashboard
+    if(DOM.dashboardContent.classList.contains("active")) {
+        initDashboard();
+    }
+
+    /*
+    * Inbox
+    */
+   setInterval(() => {
+        const hasExpandedMessage = document.querySelector('.one_message.expanded');
+        if(!hasExpandedMessage) {
+            loadMessages();
+            updateUnreadBadge();
+        }
+    }, 5000);
 });
 
+/**
+ * 
+ * DASHBOARD
+ **/
 function getChartDateRangeParams() {
-    const startInput = document.getElementById('chartStartDate');
-    const endInput = document.getElementById('chartEndDate');
-    const seasonSelect = document.getElementById('filterSeason');
-    const monthSelect = document.getElementById('filterMonth');
+    const startInput = DOM.chartStartDate;
+    const endInput = DOM.chartEndDate;
+    const seasonSelect = DOM.filterSeason;
+    const monthSelect = DOM.filterMonth;
 
     const startVal = startInput?.value;
     const endVal = endInput?.value;
@@ -363,7 +277,6 @@ function getChartDateRangeParams() {
     if (startDate && endDate) {
         return `?startDate=${startDate}&endDate=${endDate}`;
     }
-    
     return '';
 }
 
@@ -377,9 +290,9 @@ function loadBlocksChart() {
             if (!res.success) return;
 
             // Nastavení výchozích hodnot do inputů, pokud jsou prázdné
-            const startInput = document.getElementById('chartStartDate');
-            const endInput = document.getElementById('chartEndDate');
-            
+            const startInput = DOM.chartStartDate;
+            const endInput = DOM.chartEndDate;
+
             if (startInput && !startInput.value) startInput.value = res.defaultStart;
             if (endInput && !endInput.value) endInput.value = res.defaultEnd; // Tady se teď správně doplní limitDate!
 
@@ -451,14 +364,12 @@ function loadBlocksChart() {
 
             if (res.limitDate) {
                 savedLimitDate = res.limitDate.split('T')[0];
-                if (limitDateInput) limitDateInput.value = savedLimitDate;
+                if (DOM.limitDateInput) DOM.limitDateInput.value = savedLimitDate;
 
                 const [year, month, day] = savedLimitDate.split('-');
                 const formattedDate = `${day}.${month}.${year}`;
                 
-                if (dashboardLimitDate) {
-                    dashboardLimitDate.innerHTML = formattedDate;
-                }
+                DOM.dashboardLimitDate.innerHTML = formattedDate;
             }
         })
         .catch(err => console.error("Chyba při načítání prvního grafu:", err));
@@ -474,8 +385,8 @@ function loadEventTypesChart() {
             if (!res.success || !res.stats) return;
 
             // Pojistka pro vyplnění inputů i z tohoto grafu, pokud by první doběhl později
-            const startInput = document.getElementById('chartStartDate');
-            const endInput = document.getElementById('chartEndDate');
+            const startInput = DOM.chartStartDate;
+            const endInput = DOM.chartEndDate;
             
             if (startInput && !startInput.value && res.defaultStart) startInput.value = res.defaultStart;
             if (endInput && !endInput.value && res.defaultEnd) endInput.value = res.defaultEnd;
@@ -603,201 +514,209 @@ function loadTopCustomersChart() {
         .catch(err => console.error("Chyba při načítání top zákazníků pro graf:", err));
 }
 
-// Posluchač pro tlačítko filtru grafů
-document.addEventListener("DOMContentLoaded", () => {
-    const filterBtn = document.getElementById('filterChartsBtn');
-    if (filterBtn) {
-        filterBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-
-            const queryParams = getChartDateRangeParams();
-            if (queryParams === null) {
-                return;
-            }
-            
-            initDashboard();
-        });
-    }
-});
-
 async function initDashboard() {
     await loadBlocksChart();
     loadEventTypesChart();
     loadTopCustomersChart();
 }
 
-const passwordEyeIcon = document.querySelectorAll('.password-eye-icon');
+/**
+ * 
+ * EVENTS
+ **/
+// vykreslení kalendáře
+function initCalendar() {
+    if (calendarInitialized) {
+        if (calendar) {
+            setTimeout(() => {
+                calendar.render();
+                calendar.updateSize();
+            }, 50);
+        }
+        return;
+    }
 
-passwordEyeIcon.forEach(icon => {
-    icon.addEventListener('click', () => {
+    const calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'cs',
+        initialView: 'timeGridWeek',
+        height: '100%',
+        nowIndicator: true,
+
+        validRange: {
+            end: savedLimitDate ? addOneDay(savedLimitDate) : undefined
+        },
+
+        dayHeaderDidMount: function(info) {
+            if (info.view.type === "dayGridMonth") return;
+            info.el.style.cursor = "pointer";
+            info.el.addEventListener("click", () => {
+                calendar.changeView('timeGridDay', info.date);
+            });
+        },
+
+        dayMaxEvents: 3,
+
+        customButtons: {
+            printButton: {
+            text: "",
+            click: function() {
+                window.print();
+            }
+            }
+        },
+
+        headerToolbar: {
+            left: 'prev,next today printButton',
+            center: 'title',
+            right: 'timeGridDay,timeGridWeek,dayGridMonth'
+        },
+
+        buttonText: {
+            today: "Dnes",
+            week: "Týden",
+            day: "Den",
+            month: "Měsíc"
+        },
         
-        const targetId = icon.getAttribute('data-target');
-        const passwordInput = document.getElementById(targetId);
+        expandRows: false,
+        firstDay: 1,
 
-        if (passwordInput) {
+        slotMinTime: '06:00:00',
+        slotMaxTime: '23:00:00',
+
+        slotDuration: '01:00:00',
+        slotLabelInterval: '01:00',
+
+        allDaySlot: false,
+        moreLinkText: 'další',
+
+        events: "http://localhost:3000/api/events",
+
+        eventClick: function(info) {
+            currentEditingId = info.event.id;
             
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
+            const props = info.event.extendedProps;
+            currentEventIsBooked = (props.booked === true || props.booked === 1);
 
-            icon.classList.toggle('fa-eye');
-            icon.classList.toggle('fa-eye-slash');
+            const eventType = props.type;
+
+            DOM.eventTitle.value = eventType;
+
+            const clientNameInput = DOM.adminBookedClientName;
+            const clientSurnameInput = DOM.adminBookedClientSurname;
+            const clientTelInput = DOM.adminBookedClientTel;
+            const clientEmailInput = DOM.adminBookedClientEmail;
+
+            if (currentEventIsBooked) {
+                DOM.clientInfo.forEach(element => element.classList.add("active"));
+                clientNameInput.value = props.client_name || "";
+                clientSurnameInput.value = props.client_surname || "";
+                clientTelInput.value = props.client_phone || "";
+                clientEmailInput.value = props.client_email || "";
+                DOM.eventTitle.value = "booked";
+            } else {
+                DOM.clientInfo.forEach(element => element.classList.remove("active"));
+                clientNameInput.value = "";
+                clientSurnameInput.value = "";
+                clientTelInput.value = "";
+                clientEmailInput.value = "";
+                DOM.eventTitle.value = eventType;
+            }
+
+            DOM.eventStart.value = info.event.startStr.slice(0, 16);
+            DOM.eventEnd.value = info.event.endStr ? info.event.endStr.slice(0, 16) : "";
+
+            DOM.submitBtn.title = "Potvrdit změny";
+            
+            if (currentEventIsBooked) {
+                DOM.deleteBtn.title = "Zrušit rezervaci";
+            } else {
+                DOM.deleteBtn.title = "Odstranit událost";
+            }
+
+            DOM.deleteBtn.style.display = "inline-block";
+            DOM.cancelBtn.style.display = "inline-block";
+        },
+
+        eventClassNames: function(arg) {
+            const type = arg.event.extendedProps.type;
+            const booked = arg.event.extendedProps.booked;
+
+            if(type === 'rent') {
+                if(!booked) return ['event-rent'];
+                else return ['event-rent-booked'];
+            } else if (type === 'public') return ['event-public'];
+            else if (type === 'booked') return ['event-booked'];
+            else if (type === 'maintenance') return ['event-maintenance'];
+            else if (type === 'school') return ['event-school'];
+            return [];
+        },
+
+        dayCellDidMount: function(info) {
+            if (info.view.type === "dayGridMonth") {
+                info.el.style.cursor = "pointer";
+            }
+        },
+
+        dateClick: function(info) {
+            if (info.view.type === "dayGridMonth") {
+                calendar.changeView('timeGridDay', info.date);
+            }
+        },
+
+        dayHeaderContent: function(arg) {
+            const date = arg.date;
+            const day = date.toLocaleDateString('cs-CZ', { weekday: 'short' });
+            const fullDate = date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
+            const dayDate = date.toLocaleDateString('cs-CZ', { day: 'numeric' });
+
+            if (arg.view.type === "dayGridMonth") {
+                return { html: `<span class="day-name">${day}</span>` };
+            }
+
+            if (arg.view.type === "timeGridWeek" && window.innerWidth <= 430) {
+                return {
+                    html: `
+                        <div class="day-header">
+                            <span class="day-name">${day}</span>
+                            <span class="day-date">${dayDate}</span>
+                        </div>
+                    `
+                };
+            }
+
+            return {
+                html: `
+                    <div class="day-header">
+                        <span class="day-name">${day}</span>
+                        <span class="day-date">${fullDate}</span>
+                    </div>
+                `
+            };
         }
     });
-});
-
-// pole, které propojuje ikonu, textový odkaz a obsah v celém admin panelu
-const navItems = [
-    { icon: dashboardIcon, content: dashboardContent },
-    { icon: eventsIcon, content: eventsContent },
-    { icon: reservationsIcon, content: reservationsContent },
-    { icon: inboxIcon, content: inboxContent },
-    { icon: customersIcon, content: customersContent },
-    { icon: adminUserIcon, content: adminUserContent},
-    { icon: editIcon, content: editContent}
-];
-
-// Pomocná funkce pro přepnutí sekce a uložení do URL
-function showSection(item) {
-    allContents.forEach(content => content.classList.remove("active"));
-
-    navItems.forEach(nav => {
-        nav.icon.classList.remove("active");
-
-        const textLink = nav.icon ? nav.icon.nextElementSibling : null;
-        textLink.classList.remove("active");
-    });
-
-    item.content.classList.add("active");
-    item.icon.classList.add("active");
-
-    const activeTextLink = item.icon ? item.icon.nextElementSibling : null;
-    activeTextLink.classList.add("active");
-
-    if (item.content.id) {
-        history.replaceState(null, null, '#' + item.content.id);
-    }
-
-    setTimeout(() => {
-        if (adminContent) {
-            adminContent.scrollTop = 0;
-        }
-        window.scrollTo(0, 0);
-    }, 50);
-
-    if (item.content === dashboardContent) {
-        initDashboard();
-    }
-
-    if (item.content === eventsContent) {
-        setTimeout(() => {
-            initCalendar();
-        }, 50);
-    }
-
-    if (item.content === reservationsContent) {
-        loadAdminReservations();
-    }
-
-    if (item.content === customersContent) {
-        loadCustomers();
-    }
+    calendar.render();
+    calendarInitialized = true;
 }
 
-navItems.forEach(item => {
-    if (item.icon && item.content) {
-        item.icon.addEventListener("click", (e) => {
-            e.preventDefault();
-
-            showSection(item);
-        });
-
-        const textLink = item.icon.nextElementSibling;
-        textLink.addEventListener("click", (e) => {
-            e.preventDefault();
-            showSection(item);
-        });
-    }
-});
-
 // zobrazení inputů pro vyplnění údajů, po kliku na rezervovaný termín
-changeEventTitle.addEventListener("change", function(e) {
+DOM.eventTitle.addEventListener("change", function(e) {
     if(this.value === "booked") {
-        clientInfo.forEach(element => {
+        DOM.clientInfo.forEach(element => {
             element.classList.add("active");
         })
     } else {
-        clientInfo.forEach(element => {
+        DOM.clientInfo.forEach(element => {
             element.classList.remove("active");
         })
     }
 })
 
-// načítání z databáze uložené datum limitu rozsahu rozpisu
-document.addEventListener("DOMContentLoaded", function() {
-
-    const menuWrapper = document.getElementById("adminMenuWrapper");
-    const menuSlideToggle = document.getElementById("menuSlideToggle");
-
-    if (menuSlideToggle && menuWrapper) {
-        menuSlideToggle.addEventListener("click", () => {
-            // Přepneme třídu pro úplné schování/zobrazení menu
-            menuWrapper.classList.toggle("menu-collapsed");
-        });
-    }
-
-    fetch('http://localhost:3000/api/setting')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // 1. Nastavení limitního data (původní logika)
-                if (data.limitDate) {
-                    savedLimitDate = data.limitDate.split('T')[0];
-                    limitDateInput.value = savedLimitDate;
-
-                    const [year, month, day] = savedLimitDate.split('-');
-                    const formattedDate = `${day}.${month}.${year}`;
-                
-                    dashboardLimitDate.innerHTML = formattedDate;
-                }
-            }
-        })
-    .catch(error => console.error('Chyba při načítání nastavení:', error));
-
-    loadMessages();
-    updateUnreadBadge();
-    setInterval(() => {
-        const hasExpandedMessage = document.querySelector('.one_message.expanded');
-        if(!hasExpandedMessage) {
-            loadMessages();
-            updateUnreadBadge();
-        }
-    }, 5000);
-
-    // 2. Po načtení stránky zkontrolujeme, zda je v URL hash
-    const currentHash = window.location.hash.substring(1); // získá např. "inbox" z "#inbox"
-
-    if (currentHash) {
-        // Najdeme správnou položku v poli navItems podle ID obsahu
-        const targetItem = navItems.find(item => item.content && item.content.id === currentHash);
-        if (targetItem) {
-            showSection(targetItem);
-            return; // Ukončíme, ať se nespouští výchozí dashboard
-        }
-    }
-
-    // Výchozí fallback (pokud v URL žádný hash není, otevře se dashboard nebo první položka)
-    const defaultItem = navItems.find(item => item.content && item.content.id === 'dashboard') || navItems[0];
-    if (defaultItem) {
-        showSection(defaultItem);
-    }
-
-    if(dashboardContent.classList.contains("active")) {
-        initDashboard();
-    }
-});
-
 // nastavení rozsahu zobrazení rozpisu - kalendáře
-limitDateInput.addEventListener("change", function() {
+DOM.limitDateInput.addEventListener("change", function() {
     const selectedDate = this.value;
     //const today = new Date().toISOString().split('T')[0];
     const nextDay = addOneDay(selectedDate);
@@ -821,20 +740,20 @@ limitDateInput.addEventListener("change", function() {
     .catch(error => console.error('Chyba při ukládání:', error));
 });
 
-cancelBtn.addEventListener("click", function() {
+DOM.cancelBtn.addEventListener("click", function() {
     resetFormMode();
 });
 
-adminEventsForm.addEventListener("submit", function(e) {
+DOM.adminEventsForm.addEventListener("submit", function(e) {
     e.preventDefault();
 
     const isEditing = Boolean(currentEditingId);
 
-    const selectedType = document.getElementById("eventTitle").value;
-    const clientNameVal = adminBookedClientName.value;
-    const clientSurnameVal = document.getElementById("adminBookedClientSurname").value;
-    const clientTelVal = document.getElementById("adminBookedClientTel").value;
-    const clientEmailVal = document.getElementById("adminBookedClientEmail").value;
+    const selectedType = DOM.eventTitle.value;
+    const clientNameVal = DOM.adminBookedClientName.value;
+    const clientSurnameVal = DOM.adminBookedClientSurname.value;
+    const clientTelVal = DOM.adminBookedClientTel.value;
+    const clientEmailVal = DOM.adminBookedClientEmail.value;
     
     let eventType = selectedType;
     let eventTitleText = "";
@@ -850,11 +769,11 @@ adminEventsForm.addEventListener("submit", function(e) {
 
     let finalTitle = eventTitleText;
 
-    const startVal = document.getElementById("eventStart").value;
-    const endVal = document.getElementById("eventEnd").value;
+    const startVal = DOM.eventStart.value;
+    const endVal = DOM.eventEnd.value;
 
     if (!endVal || endVal <= startVal) {
-        showFormMessage(adminEventsForm, "Neplatně zadané datumy!", false);
+        showFormMessage(DOM.adminEventsForm, "Neplatně zadané datumy!", false);
         return;
     }
 
@@ -892,17 +811,17 @@ adminEventsForm.addEventListener("submit", function(e) {
                 ? "Změny byly úspěšně uloženy" 
                 : "Nová událost byla úspěšně vytvořena";
 
-            showFormMessage(adminEventsForm, successText, true)
+            showFormMessage(DOM.adminEventsForm, successText, true)
         } else {
-            showFormMessage(adminEventsForm, "Akce se nezdařila.", false)
+            showFormMessage(DOM.adminEventsForm, "Akce se nezdařila.", false)
         }
     })
     .catch(error => console.error('Chyba:', error));
-    showFormMessage(adminEventsForm, "Chyba připojení k serveru", false);
+    showFormMessage(DOM.adminEventsForm, "Chyba připojení k serveru", false);
 });
 
 // tlačítko pro smazání rezervace ve formuláři
-deleteBtn.addEventListener("click", function() {
+DOM.deleteBtn.addEventListener("click", function() {
     if (!currentEditingId) return;
 
     // Zjistíme aktuální stav přímo z kalendáře
@@ -944,10 +863,147 @@ deleteBtn.addEventListener("click", function() {
     }
 });
 
+/*
+* ADMIN
+*/
+DOM.passwordEyeIcon.forEach(icon => {
+    icon.addEventListener('click', () => {
+        
+        const targetId = icon.getAttribute('data-target');
+        const passwordInput = document.getElementById(targetId);
 
+        if (passwordInput) {
+            
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        }
+    });
+});
+
+DOM.changePasswordForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+
+    try {
+        const response = await fetch('/api/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ currentPassword, newPassword })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            DOM.changePasswordForm.reset();
+            showFormMessage(DOM.changePasswordFormSubmitContainer, "Heslo bylo úspěšně změněno", true);
+        } else {
+            console.log(data.error);
+            showFormMessage(DOM.changePasswordFormSubmitContainer, "Heslo se nepodařilo změnit", false);
+        }
+    } catch (err) {
+        console.error('Chyba při komunikaci se serverem:', err);
+        showFormMessage(DOM.changePasswordFormSubmitContainer, "Chyba na straně serveru", false);
+    }
+});
+
+/**
+ * OBECNÉ
+ */
+// pole, které propojuje ikonu, textový odkaz a obsah v celém admin panelu
+const navItems = [
+    { icon: DOM.dashboardIcon, content: DOM.dashboardContent },
+    { icon: DOM.eventsIcon, content: DOM.eventsContent },
+    { icon: DOM.reservationsIcon, content: DOM.reservationsContent },
+    { icon: DOM.inboxIcon, content: DOM.inboxContent },
+    { icon: DOM.customersIcon, content: DOM.customersContent },
+    { icon: DOM.adminUserIcon, content: DOM.adminUserContent},
+    { icon: DOM.editIcon, content: DOM.editContent}
+];
+
+// Pomocná funkce pro přepnutí sekce a uložení do URL
+function showSection(item) {
+    DOM.allContents.forEach(content => content.classList.remove("active"));
+
+    navItems.forEach(nav => {
+        nav.icon.classList.remove("active");
+
+        const textLink = nav.icon ? nav.icon.nextElementSibling : null;
+        textLink.classList.remove("active");
+    });
+
+    item.content.classList.add("active");
+    item.icon.classList.add("active");
+
+    const activeTextLink = item.icon ? item.icon.nextElementSibling : null;
+    activeTextLink.classList.add("active");
+
+    if (item.content.id) {
+        history.replaceState(null, null, '#' + item.content.id);
+    }
+
+    setTimeout(() => {
+        if (DOM.adminContent) {
+            DOM.adminContent.scrollTop = 0;
+        }
+        window.scrollTo(0, 0);
+    }, 50);
+
+    if (item.content === DOM.dashboardContent) {
+        initDashboard();
+    }
+
+    if (item.content === DOM.eventsContent) {
+        setTimeout(() => {
+            initCalendar();
+        }, 50);
+    }
+
+    if (item.content === DOM.reservationsContent) {
+        loadAdminReservations();
+    }
+
+    if (item.content === DOM.customersContent) {
+        loadCustomers();
+    }
+
+    if(item.content == DOM.inboxContent) {
+        loadMessages();
+    }
+
+    if(item.content === DOM.editContent) {
+        loadAdminContent();
+    }
+}
+
+navItems.forEach(item => {
+    if (item.icon && item.content) {
+        item.icon.addEventListener("click", (e) => {
+            e.preventDefault();
+
+            showSection(item);
+        });
+
+        const textLink = item.icon.nextElementSibling;
+        textLink.addEventListener("click", (e) => {
+            e.preventDefault();
+            showSection(item);
+        });
+    }
+});
+
+/**
+ * 
+ * RESERVATIONS
+ */
 function loadAdminReservations() {
-    const listContainer = document.getElementById("reservationsList");
-    if (!listContainer) return;
+    if (!DOM.listContainer) return;
 
     fetch('http://localhost:3000/api/admin-reservations')
         .then(response => response.json())
@@ -955,7 +1011,7 @@ function loadAdminReservations() {
             if (!res.success || !res.events) return;
 
             const events = res.events;
-            listContainer.innerHTML = ""; // Vyčistíme starý obsah
+            DOM.listContainer.innerHTML = ""; // Vyčistíme starý obsah
 
             // 1. Získání dnešního a zítřejšího data v lokálním čase bez UTC chyb
             const now = new Date();
@@ -1003,8 +1059,6 @@ function loadAdminReservations() {
                     dayWrapper.classList.remove("today", "tomorrow");
                 }
 
-                
-
                 // Hlavička dne (např. "Dnes, 10.10.2026, sobota (2/4)")
                 dayWrapper.innerHTML = `
                     <div class="reservation-day-header title">
@@ -1045,17 +1099,17 @@ function loadAdminReservations() {
                             <div class="card-free-text">Možnost pronájmu (Volné)</div>
                         `;
                     }
-
                     cardsContainer.appendChild(card);
                 });
-
-                listContainer.appendChild(dayWrapper);
+                DOM.listContainer.appendChild(dayWrapper);
             }
         })
         .catch(err => console.error("Chyba při načítání rezervací:", err));
 }
 
-
+/*
+* CUSTOMERS
+*/
 function loadCustomers() {
     const tbody = document.getElementById('customersTableBody');
     if (!tbody) return;
@@ -1103,43 +1157,9 @@ function loadCustomers() {
         .catch(err => console.error("Chyba při načítání zákazníků:", err));
 }
 
-
-
-const changePasswordForm = document.getElementById('changePasswordForm');
-
-changePasswordForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const currentPassword = document.getElementById('currentPassword').value;
-    const newPassword = document.getElementById('newPassword').value;
-
-    try {
-        const response = await fetch('/api/change-password', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ currentPassword, newPassword })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            changePasswordForm.reset();
-            showFormMessage(changePasswordFormSubmitContainer, "Heslo bylo úspěšně změněno", true);
-        } else {
-            console.log(data.error);
-            showFormMessage(changePasswordFormSubmitContainer, "Heslo se nepodařilo změnit", false);
-        }
-    } catch (err) {
-        console.error('Chyba při komunikaci se serverem:', err);
-        showFormMessage(changePasswordFormSubmitContainer, "Chyba na straně serveru", false);
-    }
-});
-
-
-
-
+/**
+ * EDIT
+ */
 // Seznam všech našich klíčů z HTML formuláře
 const contentKeys = [
     'hp-public-skate',
@@ -1164,7 +1184,7 @@ const contentKeys = [
     'schedule-rental-skate'
 ];
 
-// 1. Načtení dat do formuláře při otevření adminu
+// načtení dat do formuláře, kde se mění obsah textů na webu
 let originalContentValues = {};
 
 async function loadAdminContent() {
@@ -1187,13 +1207,8 @@ async function loadAdminContent() {
     }
 }
 
-loadAdminContent();
-
-// 2. Uložení všech změn po odeslání formuláře
-const editContentForm = document.getElementById('editContentForm');
-
-
-editContentForm.addEventListener('submit', async (e) => {
+// uložení všech změn po odeslání formuláře
+DOM.editContentForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     let hasChanges = false;
@@ -1206,7 +1221,7 @@ editContentForm.addEventListener('submit', async (e) => {
     }
 
     if (!hasChanges) {
-        showFormMessage(editContent, "Nebyla provedena žádná změna", false);
+        showFormMessage(DOM.editContent, "Nebyla provedena žádná změna", false);
         return;
     }
 
@@ -1233,13 +1248,13 @@ editContentForm.addEventListener('submit', async (e) => {
         }
 
         if (allSuccess) {
-            showFormMessage(editContent, "Změny byly úspěšně uloženy", true);
+            showFormMessage(DOM.editContent, "Změny byly úspěšně uloženy", true);
         } else {
-            showFormMessage(editContent, "Některé změny se nepodařilo uložit", false);
+            showFormMessage(DOM.editContent, "Některé změny se nepodařilo uložit", false);
         }
 
     } catch (err) {
         console.error('Chyba při ukládání:', err);
-        showFormMessage(editContent, "Chyba připojení k serveru", false);
+        showFormMessage(DOM.editContent, "Chyba připojení k serveru", false);
     }
 });

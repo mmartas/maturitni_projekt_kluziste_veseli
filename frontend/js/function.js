@@ -136,7 +136,7 @@ function updateUnreadBadge() {
     .catch(err => console.error("Chyba při načítání počtu nepřečtených:", err));
 }
 
-// načtení informací z tabulky reservations pro inbox pro admin panel
+// načtení zpráv z tabulky reservations pro inbox
 function loadMessages() {
     fetch('http://localhost:3000/api/reservations')
     .then(response => response.json())
@@ -178,24 +178,20 @@ function loadMessages() {
             const trashBtn = messageDiv.querySelector('.trashCan');
             trashBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                e.stopPropagation(); // Zabrání rozbalení zprávy
+                e.stopPropagation();
 
-                // Odešleme požadavek na server, že chceme zprávu skrýt
                 fetch(`http://localhost:3000/api/reservations/${msg.id}/hide`, {
                     method: 'PATCH'
                 })
                 .then(response => response.json())
                 .then(result => {
                     if (result.success) {
-                        // Zpráva vizuálně zmizí z inboxu
                         messageDiv.remove();
                         
-                        // Aktualizace počtu nepřečtených zpráv
                         if (typeof updateUnreadBadge === 'function') {
                             updateUnreadBadge();
                         }
 
-                        // Pokud v inboxu nezbyla žádná zpráva, vypíšeme text
                         if (container.children.length === 0) {
                             container.innerHTML = '<p>Žádné zprávy v inboxu.</p>';
                         }
@@ -226,32 +222,28 @@ function loadMessages() {
     .catch(err => console.error("Chyba při načítání zpráv:", err));
 }
 
+// resetuje formulář do výchozího stavu pro přidání nové události
 function resetFormMode() {
     currentEditingId = null;
-    adminEventsForm.reset();
-    document.querySelectorAll(".clientInfo").forEach(element => {
+    DOM.adminEventsForm.reset();
+    DOM.clientInfo.forEach(element => {
         element.classList.remove("active");
     })
-    deleteBtn.style.display = "none";
-    cancelBtn.style.display = "none";
-    submitBtn.title = "Přidat událost";
+    DOM.deleteBtn.style.display = "none";
+    DOM.cancelBtn.style.display = "none";
+    DOM.submitBtn.title = "Přidat událost";
 }
 
-
+// formátování telefonního čísla
 function setupPhoneFormatters() {
-    // Posloucháme globálně na dokumentu, takže to nezáleží na tom, 
-    // kdy se input v DOMu objeví (jestli hned, nebo až po kliknutí)
     document.addEventListener("input", function (e) {
-        // Zkontrolujeme, jestli upravovaný prvek má třídu "phone-input"
         if (e.target && e.target.classList.contains("phone-input")) {
             let cleaned = e.target.value.replace(/\D/g, "");
 
-            // Omezení na maximálně 9 čísel
             if (cleaned.length > 9) {
                 cleaned = cleaned.substring(0, 9);
             }
 
-            // Formátování po třech číslech (např. 123 456 789)
             let formatted = "";
             if (cleaned.length > 0) {
                 formatted = cleaned.substring(0, 3);
@@ -268,9 +260,9 @@ function setupPhoneFormatters() {
     });
 }
 
+// formátování jména a příjmení - odstranění čísel a speciálních znaků
 function setupNameFormatters() {
     document.addEventListener("input", function (e) {
-        // Zkontroluje, jestli upravovaný prvek má třídu "name-input"
         if (e.target && e.target.classList.contains("name-input")) {
             e.target.value = e.target.value.replace(/[^a-zA-ZáčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ\s]/g, "");
         }
@@ -283,7 +275,7 @@ function showFormMessage(formElement, text, isSuccess = true) {
     if (existingMsg) {
         existingMsg.remove();
     }
-
+    
     const msgEl = document.createElement('div');
     msgEl.className = `dynamic-form-message ${isSuccess ? 'success' : 'error'} text`;
     msgEl.textContent = text;
@@ -296,4 +288,11 @@ function showFormMessage(formElement, text, isSuccess = true) {
             msgEl.remove();
         }, 300); 
     }, 2000);
+}
+
+// přidá jeden den k datu, aby se správně zobrazoval konec události v kalendáři
+function addOneDay(dateStr) {
+    const d = new Date(dateStr);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
 }
