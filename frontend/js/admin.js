@@ -173,12 +173,14 @@ function initCalendar() {
                 clientSurnameInput.value = props.client_surname || "";
                 clientTelInput.value = props.client_phone || "";
                 clientEmailInput.value = props.client_email || "";
+                changeEventTitle.value = "booked";
             } else {
                 clientInfo.forEach(element => element.classList.remove("active"));
                 clientNameInput.value = "";
                 clientSurnameInput.value = "";
                 clientTelInput.value = "";
                 clientEmailInput.value = "";
+                changeEventTitle.value = eventType;
             }
 
             document.getElementById("eventStart").value = info.event.startStr.slice(0, 16);
@@ -850,6 +852,11 @@ adminEventsForm.addEventListener("submit", function(e) {
 
     const startVal = document.getElementById("eventStart").value;
     const endVal = document.getElementById("eventEnd").value;
+
+    if (!endVal || endVal <= startVal) {
+        showFormMessage(adminEventsForm, "Neplatně zadané datumy!", false);
+        return;
+    }
 
     // TADY PŘIDÁVÁME KLIENTSKSÁ DATA DO FORMULAR DATA
     const formData = {

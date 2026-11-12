@@ -161,6 +161,15 @@ app.post('/api/events', async (req, res) => {
     try {
         const { title, start, end, type, name, surname, phone, email, date } = req.body;
 
+        const [overlapping] = await pool.query(
+            "SELECT id FROM events WHERE start < ? AND end > ?",
+            [end, start]
+        );
+
+        if (overlapping.length > 0) {
+            return res.json({ success: false, error: "Zvolený termín se překrývá s jinou událostí!" });
+        }
+
         const [result] = await pool.query(
             "INSERT INTO events (title, start, end, type) VALUES (?, ?, ?, ?)",
             [title, start, end, type]
@@ -187,6 +196,15 @@ app.put('/api/events/:id', async (req, res) => {
     try {
         const eventId = req.params.id;
         const { title, start, end, type, name, surname, phone, email, date } = req.body;
+
+        const [overlapping] = await pool.query(
+            "SELECT id FROM events WHERE id != ? AND start < ? AND end > ?",
+            [eventId, end, start]
+        );
+
+        if (overlapping.length > 0) {
+            return res.json({ success: false, error: "Zvolený termín se překrývá s jinou událostí!" });
+        }
 
         await pool.query(
             "UPDATE events SET title = ?, start = ?, end = ?, type = ? WHERE id = ?",
