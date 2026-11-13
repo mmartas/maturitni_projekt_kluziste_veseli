@@ -932,10 +932,15 @@ function showSection(item) {
     DOM.allContents.forEach(content => content.classList.remove("active"));
 
     navItems.forEach(nav => {
-        nav.icon.classList.remove("active");
-
+        if(nav.icon) {
+            nav.icon.classList.remove("active");
+        }
+        
         const textLink = nav.icon ? nav.icon.nextElementSibling : null;
-        textLink.classList.remove("active");
+        if(textLink) {
+            textLink.classList.remove("active");
+        }
+        
     });
 
     item.content.classList.add("active");

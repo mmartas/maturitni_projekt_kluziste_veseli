@@ -159,8 +159,27 @@ function loadMessages() {
 
             const formattedDate = formatEmailDate(msg.date);
 
+            let formattedDateOnly = '';
+            let formattedTimeOnly = '';
+            if (msg.created_at) {
+                const createdObj = new Date(msg.created_at);
+                formattedDateOnly = createdObj.toLocaleDateString('cs-CZ', {
+                    day: 'numeric',
+                    month: 'numeric',
+                    year: 'numeric'
+                });
+                formattedTimeOnly = createdObj.toLocaleTimeString('cs-CZ', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
             messageDiv.innerHTML = `
                 <div class="message_preview">
+                    <div class="message_datetime">
+                        <span class="message_date">${formattedDateOnly}</span>
+                        <span class="message_time">${formattedTimeOnly}</span>
+                    </div>
                     <span class="message_subject">Potvrzení rezervace</span>
                     <span class="message_body">${msg.name} ${msg.surname}</span>
                     <span class="client_email">${msg.email}</span>
