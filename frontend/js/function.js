@@ -120,7 +120,7 @@ function formatEmailDate(dateString) {
 
 // aktualizuje počet nepřečtených zpráv
 function updateUnreadBadge() {
-    fetch('http://localhost:3000/api/reservations/unread-count')
+    fetch('/api/reservations/unread-count')
     .then(response => response.json())
     .then(data => {
         const badge = document.getElementById('unreadMessagesIcon');
@@ -136,9 +136,19 @@ function updateUnreadBadge() {
     .catch(err => console.error("Chyba při načítání počtu nepřečtených:", err));
 }
 
+// ošetření vstupů, které se načítají v html(inbox)
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // načtení zpráv z tabulky reservations pro inbox
 function loadMessages() {
-    fetch('http://localhost:3000/api/reservations')
+    fetch('/api/reservations')
     .then(response => response.json())
     .then(messages => {
         const container = document.getElementById('messagesContainer');
@@ -177,20 +187,20 @@ function loadMessages() {
             messageDiv.innerHTML = `
                 <div class="message_preview">
                     <div class="message_datetime">
-                        <span class="message_date">${formattedDateOnly}</span>
-                        <span class="message_time">${formattedTimeOnly}</span>
+                        <span class="message_date">${escapeHtml(formattedDateOnly)}</span>
+                        <span class="message_time">${escapeHtml(formattedTimeOnly)}</span>
                     </div>
                     <span class="message_subject">Potvrzení rezervace</span>
-                    <span class="message_body">${msg.name} ${msg.surname}</span>
-                    <span class="client_email">${msg.email}</span>
+                    <span class="message_body">${escapeHtml(msg.name)} ${escapeHtml(msg.surname)}</span>
+                    <span class="client_email">${escapeHtml(msg.email)}</span>
                     <a class="trashCan box_glass_effect_red small-action-button" href="#" title="Smazat zprávu"><i class="fa-solid fa-trash-can"></i></a>
                 </div>
                 <div class="message_details">
-                    <p><strong>Jméno a příjmení:</strong> ${msg.name} ${msg.surname}</p>
-                    <p><strong>E-mail:</strong> ${msg.email}</p>
-                    <p><strong>Telefon:</strong> ${msg.phone || 'Neuvedeno'}</p>
-                    <p><strong>Rezervovaný termín:</strong> ${formattedDate}</p>
-                    <p><strong>Poznámka:</strong> ${msg.note || 'Žádná poznámka'}</p>
+                    <p><strong>Jméno a příjmení:</strong> ${escapeHtml(msg.name)} ${escapeHtml(msg.surname)}</p>
+                    <p><strong>E-mail:</strong> ${escapeHtml(msg.email)}</p>
+                    <p><strong>Telefon:</strong> ${escapeHtml(msg.phone || 'Neuvedeno')}</p>
+                    <p><strong>Rezervovaný termín:</strong> ${escapeHtml(formattedDate)}</p>
+                    <p><strong>Poznámka:</strong> ${escapeHtml(msg.note || 'Žádná poznámka')}</p>
                 </div>
             `;
 
@@ -199,7 +209,7 @@ function loadMessages() {
                 e.preventDefault();
                 e.stopPropagation();
 
-                fetch(`http://localhost:3000/api/reservations/${msg.id}/hide`, {
+                fetch(`/api/reservations/${msg.id}/hide`, {
                     method: 'PATCH'
                 })
                 .then(response => response.json())
@@ -225,7 +235,7 @@ function loadMessages() {
                 if (this.classList.contains('unread')) {
                     this.classList.remove('unread');
 
-                    fetch(`http://localhost:3000/api/reservations/${msg.id}/read`, {
+                    fetch(`/api/reservations/${msg.id}/read`, {
                         method: 'PATCH'
                     })
                     .then(response => response.json())

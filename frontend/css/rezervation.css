@@ -146,12 +146,19 @@
 
 .modal_window .rezervation_formular form .client_info_row .inputBox.notes {
     width: 100%;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
 }
 
 .modal_window .rezervation_formular form .client_info_row .inputBox.notes textarea {
     width: 100%;
     height: 150px;
     resize: none;
+}
+
+#noteCounter {
+    font-size: 0.7rem;
 }
 
 .modal_window .rezervation_formular form button {

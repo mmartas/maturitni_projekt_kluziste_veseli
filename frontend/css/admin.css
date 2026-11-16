@@ -448,11 +448,22 @@ input, select, textarea {
 .reservation-card.free {
     opacity: 0.7;
 }
+.reservation-card span {
+    display: flex;
+    align-items: center;
+}
+.reservation-card span:last-child {
+    max-width: 50%;
+    word-wrap: break-word;
+}
 
 .card-client-info {
     display: flex;
     flex-direction: row;
     gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    flex: 1;
 }
 
 .card-time {

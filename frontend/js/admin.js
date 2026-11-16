@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Načtení limitDate z backendu a nastavení do inputu a dashboardu
-    fetch('http://localhost:3000/api/setting')
+    fetch('/api/setting')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -284,7 +284,7 @@ function getChartDateRangeParams() {
 function loadBlocksChart() {
     const queryParams = getChartDateRangeParams();
 
-    return fetch(`http://localhost:3000/api/admin-blocks-stats${queryParams}`)
+    return fetch(`/api/admin-blocks-stats${queryParams}`)
         .then(response => response.json())
         .then(res => {
             if (!res.success) return;
@@ -379,7 +379,7 @@ function loadBlocksChart() {
 function loadEventTypesChart() {
     const queryParams = getChartDateRangeParams();
 
-    fetch(`http://localhost:3000/api/admin-event-types-stats${queryParams}`)
+    fetch(`/api/admin-event-types-stats${queryParams}`)
         .then(response => response.json())
         .then(res => {
             if (!res.success || !res.stats) return;
@@ -435,7 +435,7 @@ function loadEventTypesChart() {
 function loadTopCustomersChart() {
     const queryParams = getChartDateRangeParams();
 
-    fetch(`http://localhost:3000/api/admin-top-customers${queryParams}`)
+    fetch(`/api/admin-top-customers${queryParams}`)
         .then(response => response.json())
         .then(res => {
 
@@ -593,7 +593,7 @@ function initCalendar() {
         allDaySlot: false,
         moreLinkText: 'další',
 
-        events: "http://localhost:3000/api/events",
+        events: "/api/events",
 
         eventClick: function(info) {
             currentEditingId = info.event.id;
@@ -722,7 +722,7 @@ DOM.limitDateInput.addEventListener("change", function() {
     const nextDay = addOneDay(selectedDate);
 
     // 1. Odešleme data na backend do tabulky setting
-    fetch('http://localhost:3000/api/setting', {
+    fetch('/api/setting', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -791,8 +791,8 @@ DOM.adminEventsForm.addEventListener("submit", function(e) {
     };
 
     const url = currentEditingId 
-        ? `http://localhost:3000/api/events/${currentEditingId}` 
-        : 'http://localhost:3000/api/events';
+        ? `/api/events/${currentEditingId}` 
+        : '/api/events';
     
     const method = currentEditingId ? 'PUT' : 'POST';
 
@@ -831,7 +831,7 @@ DOM.deleteBtn.addEventListener("click", function() {
     if (isBooked) {
         // SCÉNÁŘ A: Jde o rezervaci -> mažeme POUZE rezervaci v tabulce reservations, event v events zůstane!
         if (confirm("Opravdu chceš zrušit tuto rezervaci? Blok v kalendáři zůstane a vrátí se jako volný pronájem.")) {
-            fetch(`http://localhost:3000/api/reservations/by-event/${currentEditingId}`, {
+            fetch(`/api/reservations/by-event/${currentEditingId}`, {
                 method: 'DELETE'
             })
             .then(response => response.json())
@@ -848,7 +848,7 @@ DOM.deleteBtn.addEventListener("click", function() {
     } else {
         // SCÉNÁŘ B: Jde o obyčejný volný event -> mažeme celou událost z tabulky events!
         if (confirm("Opravdu chceš tuto událost smazat?")) {
-            fetch(`http://localhost:3000/api/events/${currentEditingId}`, {
+            fetch(`/api/events/${currentEditingId}`, {
                 method: 'DELETE'
             })
             .then(response => response.json())
@@ -1010,7 +1010,7 @@ navItems.forEach(item => {
 function loadAdminReservations() {
     if (!DOM.listContainer) return;
 
-    fetch('http://localhost:3000/api/admin-reservations')
+    fetch('/api/admin-reservations')
         .then(response => response.json())
         .then(res => {
             if (!res.success || !res.events) return;
@@ -1119,7 +1119,7 @@ function loadCustomers() {
     const tbody = document.getElementById('customersTableBody');
     if (!tbody) return;
 
-    fetch('http://localhost:3000/api/admin-customers')
+    fetch('/api/admin-customers')
         .then(response => response.json())
         .then(res => {
             if (!res.success || !res.customers) return;

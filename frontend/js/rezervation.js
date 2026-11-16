@@ -11,14 +11,22 @@ const calendarEl = document.getElementById('calendar');
 
 const formSubmitButton = document.getElementById("formSubmitButton");
 
+const noteTextarea = document.getElementById("clientNotes");
+const noteCounter = document.getElementById("noteCounter");
+const maxLength = noteTextarea.getAttribute("maxlength") || 300;
+
 let savedLimitDate = null;
 
 setupPhoneFormatters();
 setupNameFormatters();
 
+noteTextarea.addEventListener("input", () => {
+    noteCounter.textContent = `*počet znaků ${noteTextarea.value.length} / ${maxLength}`;
+});
+
 document.addEventListener('DOMContentLoaded', async function () {
     // načtení limitního data z databáze - pouze aktuální rozpis
-    await fetch('http://localhost:3000/api/setting')
+    await fetch('/api/setting')
         .then(response => response.json())
         .then(data => {
             if (data.success && data.limitDate) {
@@ -74,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         allDaySlot: false,
         moreLinkText: 'další',
 
-        events: "http://localhost:3000/api/events",
+        events: "/api/events",
 
         eventDidMount: function(info) {
             const today = new Date();
@@ -233,7 +241,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         formSubmitButton.textContent = "Odesílám...";
 
         // posílání dat na backend přes fetch na post endpoint do server.js
-        fetch('http://localhost:3000/api/reservations', {
+        fetch('/api/reservations', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
