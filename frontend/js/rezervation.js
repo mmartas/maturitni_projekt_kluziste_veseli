@@ -25,16 +25,16 @@ noteTextarea.addEventListener("input", () => {
 });
 
 document.addEventListener('DOMContentLoaded', async function () {
-    // načtení limitního data z databáze - pouze aktuální rozpis
-    await fetch('/api/setting')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.limitDate) {
-                // Formát datumu z databáze ořízneme na YYYY-MM-DD, aby ho input type="date" akceptoval
-                savedLimitDate = data.limitDate.split('T')[0];
-            }
-        })
-    .catch(error => console.error('Chyba při načítání nastavení:', error));
+    try {
+        const response = await fetch('/api/setting');
+        const data = await response.json();
+
+        if (data.success && data.limitDate) {
+            savedLimitDate = String(data.limitDate).split('T')[0];
+        }
+    } catch (error) {
+        console.error('Chyba při načítání nastavení:', error);
+    }
 
     // kalendář
     const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -43,7 +43,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         nowIndicator: true,
 
         validRange: {
-            end: savedLimitDate ? savedLimitDate : undefined
+            end: savedLimitDate && typeof addOneDay === 'function'
+                ? addOneDay(savedLimitDate)
+                : (savedLimitDate || undefined)
         },
 
         dayHeaderDidMount: function(info) {

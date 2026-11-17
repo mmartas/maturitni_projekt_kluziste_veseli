@@ -60,8 +60,10 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 app.listen(PORT, () => {
     console.log(`Backend server úspěšně běží na adrese: http://localhost:${PORT}`);
 
-    updateRentCounts();
+    
 });
+
+updateRentCounts();
 
 // 15. Endpoint pro získání všech zákazníků a jejich statistik
 app.get('/api/admin-customers', async (req, res) => {

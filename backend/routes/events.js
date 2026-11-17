@@ -8,8 +8,13 @@ const { updateRentCounts } = require('../utils/helpers');
 // 1. API Endpoint pro FullCalendar (vrátí události z databáze do kalendáře)
 router.get('/', async (req, res) => {
     try {
+        const includeUnpublished = req.query.includeUnpublished === '1';
+        const whereClause = includeUnpublished
+            ? ''
+            : 'WHERE e.is_published = 1 AND e.pending_delete = 0';
+
         const query = `
-            SELECT e.id, e.title, e.start, e.end, e.type, 
+            SELECT e.id, e.title, e.start, e.end, e.type, e.is_published,
             IF(r.id IS NOT NULL, 1, 0) AS booked,
             r.name AS client_name,
             r.surname AS client_surname,
@@ -17,9 +22,10 @@ router.get('/', async (req, res) => {
             r.email AS client_email
             FROM events e
             LEFT JOIN reservations r ON e.id = r.event_id
+            ${whereClause}
         `;
         const [rows] = await pool.query(query);
-        
+
         const formattedRows = rows.map(row => ({
             id: row.id,
             title: row.booked ? `Obsazeno: ${row.client_surname}` : row.title,
@@ -31,7 +37,8 @@ router.get('/', async (req, res) => {
                 client_name: row.client_name,
                 client_surname: row.client_surname,
                 client_phone: row.client_phone,
-                client_email: row.client_email
+                client_email: row.client_email,
+                is_published: row.is_published === 1
             }
         }));
 
@@ -57,9 +64,10 @@ router.post('/', async (req, res) => {
         }
 
         const [result] = await pool.query(
-            "INSERT INTO events (title, start, end, type) VALUES (?, ?, ?, ?)",
+            "INSERT INTO events (title, start, end, type, is_published) VALUES (?, ?, ?, ?, 0)",
             [title, start, end, type]
         );
+
         const eventId = result.insertId;
 
         if (surname && surname.trim() !== '') {
@@ -111,7 +119,7 @@ router.put('/:id', async (req, res) => {
         }
 
         await pool.query(
-            "UPDATE events SET title = ?, start = ?, end = ?, type = ? WHERE id = ?",
+            "UPDATE events SET title = ?, start = ?, end = ?, type = ?, is_published = 1 WHERE id = ?",
             [title, start, end, type, eventId]
         );
 
@@ -143,11 +151,45 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const eventId = req.params.id;
-        await pool.query("DELETE FROM events WHERE id = ?", [eventId]);
+        await pool.query(
+            "UPDATE events SET pending_delete = 1 WHERE id = ?",
+            [eventId]
+        );
         await updateRentCounts();
         res.json({ success: true, message: "Událost byla smazána" });
     } catch (err) {
         console.error("Chyba při mazání události:", err);
+        res.status(500).json({ error: "Chyba serveru" });
+    }
+});
+
+router.post('/publish-schedule', async (req, res) => {
+    try {
+        const { limitDate } = req.body;
+
+        if (!limitDate) {
+            return res.status(400).json({ success: false, error: "Chybí limitDate" });
+        }
+
+        await pool.query(
+            "UPDATE setting SET calendar_end_time = ? WHERE id = 1",
+            [limitDate]
+        );
+
+        await pool.query(
+            "DELETE FROM events WHERE pending_delete = 1"
+        );
+
+        await pool.query(
+            "UPDATE events SET is_published = 0 WHERE pending_delete = 0 AND DATE(start) <= ?",
+            [limitDate]
+        );
+
+        await updateRentCounts();
+
+        res.json({ success: true, limitDate });
+    } catch (err) {
+        console.error("Chyba při zveřejňování rozpisu:", err);
         res.status(500).json({ error: "Chyba serveru" });
     }
 });

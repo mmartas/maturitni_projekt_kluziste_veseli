@@ -356,13 +356,26 @@ input, select, textarea {
 }
 
 .dateLimit {
-    margin-top: auto;
+    margin-top: 150px;
     display: flex;
     gap: 0.5rem;
     width: 100%;
     flex-wrap: wrap;
     justify-content: center;
     text-align: center;
+}
+
+#updateLimitDateBtn {
+    opacity: 1;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+#updateLimitDateBtn:disabled,
+#updateLimitDateBtn.is-synced {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 .fc {

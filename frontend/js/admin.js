@@ -98,6 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupPhoneFormatters();
     setupNameFormatters();
 
+
     // vysunutí meníčka v levém admin panelu po kliknutí na šipku + (otočení šipky animací)
     DOM.menuArrow.addEventListener("click", (e) => {
         e.preventDefault();
@@ -127,15 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                if (data.limitDate) {
-                    savedLimitDate = data.limitDate.split('T')[0];
-                    DOM.limitDateInput.value = savedLimitDate;
-
-                    const [year, month, day] = savedLimitDate.split('-');
-                    const formattedDate = `${day}.${month}.${year}`;
-                
-                    DOM.dashboardLimitDate.innerHTML = formattedDate;
-                }
+                refreshLimitPreviewFromCalendar();
             }
         })
     .catch(error => console.error('Chyba při načítání nastavení:', error));
@@ -211,6 +204,8 @@ document.addEventListener("DOMContentLoaded", () => {
             updateUnreadBadge();
         }
     }, 5000);
+
+    
 });
 
 /**
@@ -593,7 +588,7 @@ function initCalendar() {
         allDaySlot: false,
         moreLinkText: 'další',
 
-        events: "/api/events",
+        events: "/api/events?includeUnpublished=1",
 
         eventClick: function(info) {
             currentEditingId = info.event.id;
@@ -735,6 +730,8 @@ DOM.limitDateInput.addEventListener("change", function() {
             calendar.setOption('validRange', {
                 end: nextDay
             });
+            publishBtn.disabled = false;
+            publishBtn.classList.remove("is-synced");
         }
     })
     .catch(error => console.error('Chyba při ukládání:', error));
@@ -806,6 +803,9 @@ DOM.adminEventsForm.addEventListener("submit", function(e) {
         if(res.success) {
             calendar.refetchEvents(); 
             resetFormMode();
+            refreshLimitPreviewFromCalendar();
+            publishBtn.disabled = false;
+            publishBtn.classList.remove("is-synced");
 
             const successText = isEditing 
                 ? "Změny byly úspěšně uloženy" 
@@ -839,6 +839,11 @@ DOM.deleteBtn.addEventListener("click", function() {
                 if (res.success) {
                     calendar.refetchEvents();
                     resetFormMode();
+                    publishBtn.disabled = false;
+                    publishBtn.classList.remove("is-synced");
+                    setTimeout(() => {
+                        refreshLimitPreviewFromCalendar();
+                    }, 150);
                 } else {
                     alert("Nepodařilo se zrušit rezervaci.");
                 }
@@ -856,6 +861,11 @@ DOM.deleteBtn.addEventListener("click", function() {
                 if (res.success) {
                     calendar.refetchEvents();
                     resetFormMode();
+                    publishBtn.disabled = false;
+                    publishBtn.classList.remove("is-synced");
+                    setTimeout(() => {
+                        refreshLimitPreviewFromCalendar();
+                    }, 150);
                 }
             })
             .catch(error => console.error('Chyba při mazání události:', error));
@@ -1263,3 +1273,100 @@ DOM.editContentForm.addEventListener('submit', async (e) => {
         showFormMessage(DOM.editContent, "Chyba připojení k serveru", false);
     }
 });
+
+
+let latestEventLimitDate = null; // Nejzažší datum zjištěné z událostí v admin kalendáři
+
+function getFurthestEventDate(events) {
+    if (!Array.isArray(events) || events.length === 0) return null;
+
+    let maxDate = null;
+
+    events.forEach(ev => {
+        const raw = ev.end || ev.start;
+        if (!raw) return;
+
+        const dateOnly = String(raw).split('T')[0].split(' ')[0];
+        if (!maxDate || dateOnly > maxDate) {
+            maxDate = dateOnly;
+        }
+    });
+
+    return maxDate;
+}
+
+function formatCzechDate(dateStr) {
+    if (!dateStr) return '-';
+    const [year, month, day] = dateStr.split('-');
+    return `${day}.${month}.${year}`;
+}
+
+async function refreshLimitPreviewFromCalendar() {
+    try {
+        const response = await fetch('/api/events?includeUnpublished=1');
+        const data = await response.json();
+
+        const events = Array.isArray(data)
+            ? data
+            : (Array.isArray(data.events) ? data.events : []);
+
+        latestEventLimitDate = getFurthestEventDate(events);
+
+        const dashboardLimitDate = DOM.dashboardLimitDate || document.getElementById("endEventsDate");
+        const limitDateInput = DOM.limitDateInput || document.getElementById("limitDate");
+
+        if (dashboardLimitDate) {
+            dashboardLimitDate.textContent = latestEventLimitDate
+                ? formatCzechDate(latestEventLimitDate)
+                : '-';
+        }
+
+        if (limitDateInput && latestEventLimitDate) {
+            limitDateInput.value = latestEventLimitDate;
+        }
+
+        
+    } catch (err) {
+        console.error("Chyba při zjišťování nejzazšího data událostí:", err);
+    }
+}
+
+
+const publishBtn = document.getElementById("updateLimitDateBtn");
+
+if (publishBtn) {
+    publishBtn.disabled = true;
+    publishBtn.classList.add("is-synced");
+
+    publishBtn.addEventListener("click", async function () {
+        const limitDateInput = document.getElementById("limitDate");
+        const dateToSave = latestEventLimitDate || (limitDateInput ? limitDateInput.value : null);
+        if (!dateToSave) return;
+
+        try {
+            const response = await fetch('/api/events/publish-schedule', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ limitDate: dateToSave })
+            });
+            const res = await response.json();
+
+            if (!response.ok || !res.success) {
+                throw new Error(res.error || "Rozpis se nepodařilo aktualizovat.");
+            }
+
+            savedLimitDate = dateToSave;
+            const dashboardLimitDate = document.getElementById("endEventsDate");
+            if (dashboardLimitDate) {
+                dashboardLimitDate.textContent = formatCzechDate(dateToSave);
+            }
+
+            publishBtn.disabled = true;
+            publishBtn.classList.add("is-synced");
+            showFormMessage(publishBtn, "Rozpis byl aktualizován.", true);
+        } catch (err) {
+            console.error("Chyba při aktualizaci limitního data:", err);
+            showFormMessage(publishBtn, "Rozpis se nepodařilo aktualizovat.", false);
+        }
+    });
+}

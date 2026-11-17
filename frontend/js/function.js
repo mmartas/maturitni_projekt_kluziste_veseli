@@ -321,7 +321,14 @@ function showFormMessage(formElement, text, isSuccess = true) {
 
 // přidá jeden den k datu, aby se správně zobrazoval konec události v kalendáři
 function addOneDay(dateStr) {
-    const d = new Date(dateStr);
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
+    if (!dateStr) return undefined;
+    const cleanDate = String(dateStr).split('T')[0];
+    const [year, month, day] = cleanDate.split('-').map(Number);
+
+    const nextDay = new Date(year, month - 1, day + 1);
+    const y = nextDay.getFullYear();
+    const m = String(nextDay.getMonth() + 1).padStart(2, '0');
+    const d = String(nextDay.getDate()).padStart(2, '0');
+
+    return `${y}-${m}-${d}`;
 }
