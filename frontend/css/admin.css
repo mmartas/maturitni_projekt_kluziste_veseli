@@ -365,14 +365,14 @@ input, select, textarea {
     text-align: center;
 }
 
-#updateLimitDateBtn {
+#publishBtn {
     opacity: 1;
     cursor: pointer;
     transition: opacity 0.2s ease;
 }
 
-#updateLimitDateBtn:disabled,
-#updateLimitDateBtn.is-synced {
+#publishBtn:disabled,
+#publishBtn.is-synced {
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;

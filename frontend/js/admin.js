@@ -125,12 +125,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Načtení limitDate z backendu a nastavení do inputu a dashboardu
     fetch('/api/setting')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                refreshLimitPreviewFromCalendar();
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (data.limitDate) {
+                savedLimitDate = String(data.limitDate).split('T')[0];
             }
-        })
+            refreshLimitPreviewFromCalendar();
+        }
+    })
     .catch(error => console.error('Chyba při načítání nastavení:', error));
 
     // když je v URL hashtag, zobrazí se odpovídající sekce
@@ -1325,6 +1328,17 @@ async function refreshLimitPreviewFromCalendar() {
             limitDateInput.value = latestEventLimitDate;
         }
 
+        const statusRes = await fetch('/api/events/pending-status');
+        const statusData = await statusRes.json();
+
+        const hasLimitChange = Boolean(latestEventLimitDate && savedLimitDate && latestEventLimitDate !== savedLimitDate);
+        const hasPending = Boolean(statusData.success && statusData.hasPendingChanges) || hasLimitChange;
+
+        if (publishBtn) {
+            publishBtn.disabled = !hasPending;
+            publishBtn.classList.toggle("is-synced", !hasPending);
+        }
+
         
     } catch (err) {
         console.error("Chyba při zjišťování nejzazšího data událostí:", err);
@@ -1332,7 +1346,7 @@ async function refreshLimitPreviewFromCalendar() {
 }
 
 
-const publishBtn = document.getElementById("updateLimitDateBtn");
+const publishBtn = document.getElementById("publishBtn");
 
 if (publishBtn) {
     publishBtn.disabled = true;
@@ -1363,10 +1377,10 @@ if (publishBtn) {
 
             publishBtn.disabled = true;
             publishBtn.classList.add("is-synced");
-            showFormMessage(publishBtn, "Rozpis byl aktualizován.", true);
+            showFormMessage(DOM.adminEventsForm, "Rozpis byl aktualizován.", true);
         } catch (err) {
             console.error("Chyba při aktualizaci limitního data:", err);
-            showFormMessage(publishBtn, "Rozpis se nepodařilo aktualizovat.", false);
+            showFormMessage(DOM.adminEventsForm, "Rozpis se nepodařilo aktualizovat.", false);
         }
     });
 }
