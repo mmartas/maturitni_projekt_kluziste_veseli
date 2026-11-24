@@ -125,12 +125,23 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Načtení limitDate z backendu a nastavení do inputu a dashboardu
+    // V DOMContentLoaded:
     fetch('/api/setting')
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             if (data.limitDate) {
                 savedLimitDate = String(data.limitDate).split('T')[0];
+
+                const dashboardLimitDate = DOM.dashboardLimitDate || document.getElementById("endEventsDate");
+                const limitDateInput = DOM.limitDateInput || document.getElementById("limitDate");
+
+                if (dashboardLimitDate) {
+                    dashboardLimitDate.textContent = formatCzechDate(savedLimitDate);
+                }
+                if (limitDateInput) {
+                    limitDateInput.value = savedLimitDate;
+                }
             }
             refreshLimitPreviewFromCalendar();
         }
@@ -139,11 +150,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // když je v URL hashtag, zobrazí se odpovídající sekce
     const currentHash = window.location.hash.substring(1);
-    if (currentHash) {
-        const targetItem = navItems.find(item => item.content && item.content.id === currentHash);
-        if (targetItem) {
-            showSection(targetItem);
-            return;
+    const targetItem = currentHash
+        ? navItems.find(item => item.content && item.content.id === currentHash)
+        : null;
+
+    if (targetItem) {
+        showSection(targetItem);
+    } else {
+        const defaultItem = navItems.find(item => item.content && item.content.id === 'dashboard') || navItems[0];
+        if (defaultItem) {
+            showSection(defaultItem);
         }
     }
 
@@ -193,11 +209,6 @@ document.addEventListener("DOMContentLoaded", () => {
         initDashboard();
     });
 
-    // pokud je dashboard aktivní, inicializuje se dashboard
-    if(DOM.dashboardContent.classList.contains("active")) {
-        initDashboard();
-    }
-
     /*
     * Inbox
     */
@@ -222,61 +233,53 @@ function getChartDateRangeParams() {
     const seasonSelect = DOM.filterSeason;
     const monthSelect = DOM.filterMonth;
 
-    const startVal = startInput?.value;
-    const endVal = endInput?.value;
-    const seasonVal = seasonSelect?.value;
-    const monthVal = monthSelect?.value;
+    const startVal = startInput?.value || '';
+    const endVal = endInput?.value || '';
+    const seasonVal = seasonSelect?.value || '';
+    const monthVal = monthSelect?.value || '';
 
     let startDate = '';
     let endDate = '';
 
-    // 1. PRIORITA: Pokud uživatel vyplnil ruční datum (Od – Do)
-    if (startVal && endVal) {
-        startDate = startVal;
-        endDate = endVal;
-
-        // Pokud platí ruční datum, vymažeme selecty sezóny/měsíce, ať se to netluče
-        if (seasonSelect) seasonSelect.value = '';
-        if (monthSelect) monthSelect.value = '';
-    }
-    // 2. PRIORITA: Pokud je vybraná sezóna nebo měsíc
-    else if (seasonVal || monthVal) {
-        
-        // Kontrola: Měsíc vybraný bez sezóny
+    // 1. PRIORITA: Sezóna / Měsíc (zůstávají vybrané a zároveň doplní Od – Do)
+    if (seasonVal || monthVal) {
         if (monthVal && !seasonVal) {
             alert('Prosím vyberte nejdříve sezónu, ke které chcete měsíc filtrovat.');
-            return null; // Zastaví filtr
+            return null;
         }
 
         const [startYearStr, endYearStr] = seasonVal.split('/');
-        const startYear = parseInt(startYearStr);
-        const endYear = parseInt(endYearStr);
+        const startYear = parseInt(startYearStr, 10);
+        const endYear = parseInt(endYearStr, 10);
 
         if (monthVal) {
-            const mNum = parseInt(monthVal);
-            // Podzimní měsíce (např. 9, 10, 11, 12) patří do startovního roku, 
-            // zimní/jarní (1, 2) do koncového roku sezóny.
+            const mNum = parseInt(monthVal, 10);
             const year = (mNum >= 9 && mNum <= 12) ? startYear : endYear;
             const mStr = monthVal.padStart(2, '0');
             const lastDay = new Date(year, mNum, 0).getDate();
-            
+
             startDate = `${year}-${mStr}-01`;
             endDate = `${year}-${mStr}-${lastDay}`;
         } else {
-            startDate = `${startYear}-09-01`; // Případně od září, pokud začíná v září
+            startDate = `${startYear}-09-01`;
             endDate = `${endYear}-04-30`;
         }
 
-        // Pokud platí sezóna/měsíc, vymažeme vizuálně datumové inputy
-        if (startInput) startInput.value = '';
-        if (endInput) endInput.value = '';
+        // Propíšeme vypočítané rozmezí do datumových inputů (selecty necháme svítit)
+        if (startInput) startInput.value = startDate;
+        if (endInput) endInput.value = endDate;
+    }
+    // 2. PRIORITA: Ručně zadané datum Od – Do
+    else if (startVal || endVal) {
+        startDate = startVal;
+        endDate = endVal;
     }
 
-    // Sestavení URL parametrů pro API
-    if (startDate && endDate) {
-        return `?startDate=${startDate}&endDate=${endDate}`;
-    }
-    return '';
+    const params = [];
+    if (startDate) params.push(`startDate=${startDate}`);
+    if (endDate) params.push(`endDate=${endDate}`);
+
+    return params.length > 0 ? `?${params.join('&')}` : '';
 }
 
 // 1. První graf (bloky)
@@ -363,16 +366,13 @@ function loadBlocksChart() {
 
             if (res.limitDate) {
                 savedLimitDate = String(res.limitDate).split('T')[0];
-            }
 
-            const previewDate = latestEventLimitDate || savedLimitDate;
-            if (previewDate) {
                 if (DOM.limitDateInput) {
-                    DOM.limitDateInput.value = previewDate;
+                    DOM.limitDateInput.value = savedLimitDate;
                 }
 
                 if (DOM.dashboardLimitDate) {
-                    const [year, month, day] = previewDate.split('-');
+                    const [year, month, day] = savedLimitDate.split('-');
                     DOM.dashboardLimitDate.textContent = `${day}.${month}.${year}`;
                 }
             }
@@ -1017,17 +1017,13 @@ function showSection(item) {
 
 navItems.forEach(item => {
     if (item.icon && item.content) {
-        item.icon.addEventListener("click", (e) => {
-            e.preventDefault();
-
-            showSection(item);
-        });
-
-        const textLink = item.icon.nextElementSibling;
-        textLink.addEventListener("click", (e) => {
-            e.preventDefault();
-            showSection(item);
-        });
+        const menuRow = item.icon.closest("li");
+        if (menuRow) {
+            menuRow.addEventListener("click", (e) => {
+                e.preventDefault();
+                showSection(item);
+            });
+        }
     }
 });
 
@@ -1330,19 +1326,7 @@ async function refreshLimitPreviewFromCalendar() {
 
         latestEventLimitDate = getFurthestEventDate(events);
 
-        const dashboardLimitDate = DOM.dashboardLimitDate || document.getElementById("endEventsDate");
-        const limitDateInput = DOM.limitDateInput || document.getElementById("limitDate");
-
-        if (dashboardLimitDate) {
-            dashboardLimitDate.textContent = latestEventLimitDate
-                ? formatCzechDate(latestEventLimitDate)
-                : '-';
-        }
-
-        if (limitDateInput && latestEventLimitDate) {
-            limitDateInput.value = latestEventLimitDate;
-        }
-
+        // Aktualizuje jen validRange admin kalendáře, aby šlo dál pracovat s aktuálními událostmi
         const effectiveEnd = getEffectiveAdminEndDate();
         if (calendar && effectiveEnd) {
             calendar.setOption('validRange', {
@@ -1360,11 +1344,17 @@ async function refreshLimitPreviewFromCalendar() {
             DOM.publishBtn.disabled = !hasPending;
             DOM.publishBtn.classList.toggle("is-synced", !hasPending);
         }
-
-        
     } catch (err) {
         console.error("Chyba při zjišťování nejzazšího data událostí:", err);
     }
+}
+
+if (DOM.limitDateInput && DOM.publishBtn) {
+    DOM.limitDateInput.addEventListener("change", () => {
+        const isChanged = Boolean(DOM.limitDateInput.value && DOM.limitDateInput.value !== savedLimitDate);
+        DOM.publishBtn.disabled = !isChanged;
+        DOM.publishBtn.classList.toggle("is-synced", !isChanged);
+    });
 }
 
 if (DOM.publishBtn) {
@@ -1372,8 +1362,10 @@ if (DOM.publishBtn) {
     DOM.publishBtn.classList.add("is-synced");
 
     DOM.publishBtn.addEventListener("click", async function () {
-        const limitDateInput = document.getElementById("limitDate");
-        const dateToSave = latestEventLimitDate || (limitDateInput ? limitDateInput.value : null);
+        const manualDate = DOM.limitDateInput && DOM.limitDateInput.value !== savedLimitDate
+            ? DOM.limitDateInput.value
+            : null;
+        const dateToSave = manualDate || latestEventLimitDate || savedLimitDate;
         if (!dateToSave) return;
 
         try {
@@ -1392,13 +1384,25 @@ if (DOM.publishBtn) {
 
             if (calendar) {
                 calendar.setOption('validRange', {
-                    end: addOneDay(dateToSave)
+                    end: addOneDay(savedLimitDate)
                 });
                 calendar.refetchEvents();
             }
-            const dashboardLimitDate = document.getElementById("endEventsDate");
-            if (dashboardLimitDate) {
-                dashboardLimitDate.textContent = formatCzechDate(dateToSave);
+
+            if (DOM.dashboardLimitDate) {
+                DOM.dashboardLimitDate.textContent = formatCzechDate(savedLimitDate);
+            }
+            if (DOM.limitDateInput) {
+                DOM.limitDateInput.value = savedLimitDate;
+            }
+
+            // Aktualizace filtru "Do" na dashboardu a přepočítání grafů (pokud není aktivní filtr sezóny/měsíce)
+            const hasSeasonOrMonth = Boolean(DOM.filterSeason?.value || DOM.filterMonth?.value);
+            if (!hasSeasonOrMonth && DOM.chartEndDate) {
+                DOM.chartEndDate.value = savedLimitDate;
+            }
+            if (typeof initDashboard === "function") {
+                initDashboard();
             }
 
             DOM.publishBtn.disabled = true;

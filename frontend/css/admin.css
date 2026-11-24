@@ -142,6 +142,10 @@ input, select, textarea {
     justify-content: space-between;
 }
 
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li:not(:first-child) {
+    cursor: pointer;
+}
+
 #adminMenuWrapper #adminMenu .admin_menu_inside ul li #adminMenuArrow i.active {
     transform: rotate(180deg);
 }
@@ -193,7 +197,7 @@ input, select, textarea {
     transition: all 0.3s ease-in-out;
 }
 
-#adminMenuWrapper #adminMenu .admin_menu_inside ul li .menu_icon i:hover {
+#adminMenuWrapper #adminMenu .admin_menu_inside ul li:not(:first-child):hover .menu_icon i {
     transform: scale(1.1);
     color: var(--red-color);
 }
